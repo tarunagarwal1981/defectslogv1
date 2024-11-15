@@ -1,4 +1,3 @@
-// src/App.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { ToastProvider } from './components/ui/toast';
 import { useToast } from './components/ui/use-toast';
@@ -10,7 +9,7 @@ import DefectsTable from './components/DefectsTable';
 import DefectDialog from './components/DefectDialog';
 import { supabase } from './supabaseClient';
 
-// Utility function for fetching user's vessels (unchanged)
+// Utility function for fetching user's vessels
 const getUserVessels = async (userId) => {
   try {
     const { data, error } = await supabase
@@ -34,7 +33,7 @@ const getUserVessels = async (userId) => {
 
 function App() {
   const { toast } = useToast();
-  const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
   const [data, setData] = useState([]);
   const [assignedVessels, setAssignedVessels] = useState([]);
   const [vesselNames, setVesselNames] = useState({});
@@ -46,14 +45,29 @@ function App() {
   const [isDefectDialogOpen, setIsDefectDialogOpen] = useState(false);
   const [currentDefect, setCurrentDefect] = useState(null);
 
+  // Initialize auth listener
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const fetchUserData = useCallback(async () => {
-    if (!user?.id) return;
+    if (!session?.user?.id) return;
 
     try {
       setLoading(true);
       
       // Get user's vessels with names
-      const userVessels = await getUserVessels(user.id);
+      const userVessels = await getUserVessels(session.user.id);
       
       // Extract vessel IDs and names
       const vesselIds = userVessels.map(v => v.vessel_id);
@@ -86,25 +100,17 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, toast]);
+  }, [session?.user?.id, toast]);
 
   useEffect(() => {
-    if (user) {
+    if (session?.user) {
       fetchUserData();
     } else {
       setData([]);
       setAssignedVessels([]);
       setVesselNames({});
     }
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => {
-      authListener?.unsubscribe();
-    };
-  }, [user, fetchUserData]);
+  }, [session?.user, fetchUserData]);
 
   const handleAddDefect = () => {
     if (assignedVessels.length === 0) {
@@ -204,7 +210,6 @@ function App() {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      setUser(null);
     } catch (error) {
       console.error("Error logging out:", error);
       toast({
@@ -231,10 +236,10 @@ function App() {
   return (
     <ToastProvider>
       <div className="min-h-screen bg-background">
-        {user ? (
+        {session ? (
           <>
             <Header 
-              user={user}
+              user={session.user}
               vessels={Object.entries(vesselNames)}
               currentVessel={currentVessel}
               onVesselChange={setCurrentVessel}
@@ -276,7 +281,7 @@ function App() {
             </main>
           </>
         ) : (
-          <Auth onLogin={setUser} />
+          <Auth onLogin={setSession} />
         )}
       </div>
     </ToastProvider>
