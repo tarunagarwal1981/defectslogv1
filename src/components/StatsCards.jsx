@@ -1,15 +1,11 @@
 import React from 'react';
-import {
-  Card,
-  CardContent,
-} from "../ui/card";
+import { Card } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { PieChart, Pie, Cell } from 'recharts';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 const StatsCards = ({ data }) => {
-  // Process data for equipment chart
   const equipmentData = data.reduce((acc, item) => {
     acc[item.Equipments] = (acc[item.Equipments] || 0) + 1;
     return acc;
@@ -20,7 +16,6 @@ const StatsCards = ({ data }) => {
     count: value
   }));
 
-  // Process data for criticality pie chart
   const criticalityData = data.reduce((acc, item) => {
     acc[item.Criticality] = (acc[item.Criticality] || 0) + 1;
     return acc;
@@ -33,41 +28,45 @@ const StatsCards = ({ data }) => {
 
   return (
     <div className="grid grid-cols-2 gap-4 mb-6">
-      <Card className="p-4">
-        <h3 className="text-lg font-semibold mb-4">Equipment Distribution</h3>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={barData}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="count" fill="#4f46e5" />
-            </BarChart>
-          </ResponsiveContainer>
+      <Card>
+        <div className="p-4">
+          <h3 className="text-lg font-semibold mb-4">Equipment Distribution</h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={barData}>
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count" fill="#4f46e5" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </Card>
 
-      <Card className="p-4">
-        <h3 className="text-lg font-semibold mb-4">Criticality Distribution</h3>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={pieData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label
-              >
-                {pieData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+      <Card>
+        <div className="p-4">
+          <h3 className="text-lg font-semibold mb-4">Criticality Distribution</h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  label
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </Card>
     </div>
