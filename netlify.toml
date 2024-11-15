@@ -1,5 +1,5 @@
 [build]
-  command = "npm i && npm install recharts && npm run build"
+  command = "npx shadcn-ui@latest add button && npx shadcn-ui@latest add card && npm i && npm install recharts && npm run build"
   publish = "build"
 
 [[redirects]]
