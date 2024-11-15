@@ -1,73 +1,71 @@
-// src/components/StatsCards.jsx
-import React, { useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { AlertCircle, CheckCircle2, Clock } from 'lucide-react';
+import React from 'react';
+import { Card } from '@/components/ui/card';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell } from 'recharts';
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 const StatsCards = ({ data }) => {
-  const stats = useMemo(() => {
-    const totalDefects = data.length;
-    const openDefects = data.filter(d => d['Status (Vessel)'] === 'Open').length;
-    const inProgressDefects = data.filter(d => d['Status (Vessel)'] === 'In Progress').length;
-    const completedDefects = data.filter(d => d['Status (Vessel)'] === 'Completed').length;
-    const criticalDefects = data.filter(d => d.Criticality === 'High').length;
+  // Process data for equipment chart
+  const equipmentData = data.reduce((acc, item) => {
+    acc[item.Equipments] = (acc[item.Equipments] || 0) + 1;
+    return acc;
+  }, {});
 
-    return {
-      totalDefects,
-      openDefects,
-      inProgressDefects,
-      completedDefects,
-      criticalDefects
-    };
-  }, [data]);
+  const barData = Object.entries(equipmentData).map(([name, value]) => ({
+    name,
+    count: value
+  }));
+
+  // Process data for criticality pie chart
+  const criticalityData = data.reduce((acc, item) => {
+    acc[item.Criticality] = (acc[item.Criticality] || 0) + 1;
+    return acc;
+  }, {});
+
+  const pieData = Object.entries(criticalityData).map(([name, value]) => ({
+    name,
+    value
+  }));
 
   return (
-    <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 px-4 py-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Defects</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.totalDefects}</div>
-        </CardContent>
+    <div className="grid grid-cols-2 gap-4 mb-6">
+      <Card className="p-4">
+        <h3 className="text-lg font-semibold mb-4">Equipment Distribution</h3>
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={barData}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="count" fill="#4f46e5" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </Card>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Open Defects</CardTitle>
-          <AlertCircle className="h-4 w-4 text-red-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.openDefects}</div>
-          <p className="text-xs text-muted-foreground">
-            {((stats.openDefects / stats.totalDefects) * 100).toFixed(1)}% of total
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-          <Clock className="h-4 w-4 text-yellow-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.inProgressDefects}</div>
-          <p className="text-xs text-muted-foreground">
-            {((stats.inProgressDefects / stats.totalDefects) * 100).toFixed(1)}% of total
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Critical Defects</CardTitle>
-          <AlertCircle className="h-4 w-4 text-orange-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.criticalDefects}</div>
-          <p className="text-xs text-muted-foreground">
-            {((stats.criticalDefects / stats.totalDefects) * 100).toFixed(1)}% of total
-          </p>
-        </CardContent>
+      <Card className="p-4">
+        <h3 className="text-lg font-semibold mb-4">Criticality Distribution</h3>
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={pieData}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                label
+              >
+                {pieData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
       </Card>
     </div>
   );
