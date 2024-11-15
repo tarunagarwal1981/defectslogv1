@@ -1,5 +1,8 @@
 import React from 'react';
-import { Card } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+} from "../ui/card";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { PieChart, Pie, Cell } from 'recharts';
 
