@@ -1,5 +1,5 @@
 [build]
-  command = "npm install recharts && npm run build"
+  command = "npm i && npm install recharts && npm run build"
   publish = "build"
 
 [[redirects]]
