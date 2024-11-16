@@ -5,13 +5,13 @@
 @tailwind utilities;
 
 :root {
-  --background: 213 58% 15%; /* #132337 */
-  --foreground: 0 0% 96%; /* #f4f4f4 */
-  --card: 205 51% 23%; /* Similar to inspiration */
+  --background: 213 58% 15%;
+  --foreground: 0 0% 96%;
+  --card: 205 51% 23%;
   --card-foreground: 0 0% 96%;
   --popover: 213 58% 15%;
   --popover-foreground: 0 0% 96%;
-  --primary: 201 76% 57%; /* #3BADE5 */
+  --primary: 201 76% 57%;
   --primary-foreground: 0 0% 96%;
   --secondary: 215 25% 27%;
   --secondary-foreground: 0 0% 96%;
@@ -33,7 +33,6 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: linear-gradient(135deg, #3BADE5 0%, #132337 100%);
-  background-color: hsl(var(--background));
   color: #f4f4f4;
   min-height: 100vh;
 }
@@ -45,6 +44,10 @@ body {
   box-shadow: 
     0 4px 24px -1px rgba(0, 0, 0, 0.2),
     0 0 1px 0 rgba(0, 0, 0, 0.16);
+}
+
+.table-hover-row {
+  transition: all 0.2s ease;
 }
 
 .table-hover-row:hover {
@@ -63,4 +66,12 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(59, 173, 229, 0.5);
   border-radius: 3px;
+}
+
+.status-badge {
+  transition: all 0.2s ease;
+}
+
+.status-badge:hover {
+  transform: scale(1.05);
 }
