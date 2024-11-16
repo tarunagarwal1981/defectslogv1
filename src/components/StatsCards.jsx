@@ -69,7 +69,7 @@ const StatsCards = ({ data }) => {
             Equipment Distribution
           </h3>
           <div className="h-[200px] w-full flex items-center justify-center">
-            <ResponsiveContainer width="100%" height={180}>
+            <ResponsiveContainer width="120%" height={180}>
               <BarChart
                 data={equipmentData}
                 layout="vertical"
