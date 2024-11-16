@@ -1,5 +1,4 @@
 import React from 'react';
-import { Button } from "./ui/button"; 
 import { PlusCircle } from 'lucide-react';
 
 const DefectsTable = ({ data, onAddDefect, onEditDefect, loading }) => {
@@ -7,10 +6,13 @@ const DefectsTable = ({ data, onAddDefect, onEditDefect, loading }) => {
     <div className="rounded-md border">
       <div className="flex justify-between items-center p-2 border-b">
         <h2 className="text-lg font-semibold">Defects Register</h2>
-        <Button onClick={onAddDefect} size="sm">
+        <button 
+          onClick={onAddDefect} 
+          className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90"
+        >
           <PlusCircle className="h-4 w-4 mr-2" />
           Add Defect
-        </Button>
+        </button>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
