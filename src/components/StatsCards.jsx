@@ -14,7 +14,35 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const StatsCards = ({ data }) => {
-  // ... (same data processing code)
+  // Equipment data for bar chart
+  const equipmentCounts = React.useMemo(() => {
+    return data.reduce((acc, item) => {
+      acc[item.Equipments] = (acc[item.Equipments] || 0) + 1;
+      return acc;
+    }, {});
+  }, [data]);
+
+  const barChartData = React.useMemo(() => {
+    return Object.entries(equipmentCounts).map(([name, count]) => ({
+      name,
+      count
+    }));
+  }, [equipmentCounts]);
+
+  // Status data for pie chart
+  const statusCounts = React.useMemo(() => {
+    return data.reduce((acc, item) => {
+      acc[item['Status (Vessel)']] = (acc[item['Status (Vessel)']] || 0) + 1;
+      return acc;
+    }, {});
+  }, [data]);
+
+  const pieChartData = React.useMemo(() => {
+    return Object.entries(statusCounts).map(([name, value]) => ({
+      name,
+      value
+    }));
+  }, [statusCounts]);
 
   const COLORS = ['#3BADE5', '#172A33'];
 
