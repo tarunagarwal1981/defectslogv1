@@ -1,5 +1,5 @@
 [build]
-  command = "CI=false npm i @babel/plugin-proposal-private-property-in-object --save-dev && npm i && npm install recharts && npm run build"
+  command = "CI=false npm run build"
   publish = "build"
 
 [[redirects]]
