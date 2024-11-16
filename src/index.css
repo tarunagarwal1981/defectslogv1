@@ -1,45 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   --background: 213 58% 15%; /* #132337 */
-  --foreground: 210 40% 98%;
-  --card: 215 49% 27%;  /* #3BADE5 with transparency */
-  --card-foreground: 210 40% 98%;
+  --foreground: 0 0% 96%; /* #f4f4f4 */
+  --card: 205 51% 23%; /* Similar to inspiration */
+  --card-foreground: 0 0% 96%;
   --popover: 213 58% 15%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 201 76% 57%;  /* #3BADE5 */
-  --primary-foreground: 210 40% 98%;
-  --secondary: 215 25% 27%;  /* #172A33 */
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
+  --popover-foreground: 0 0% 96%;
+  --primary: 201 76% 57%; /* #3BADE5 */
+  --primary-foreground: 0 0% 96%;
+  --secondary: 215 25% 27%;
+  --secondary-foreground: 0 0% 96%;
+  --muted: 215 25% 27%;
+  --muted-foreground: 217 15% 65%;
   --accent: 201 76% 57%;
-  --accent-foreground: 210 40% 98%;
+  --accent-foreground: 0 0% 96%;
   --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
+  --destructive-foreground: 0 0% 96%;
   --border: 213 58% 25%;
-  --input: 217.2 32.6% 17.5%;
+  --input: 215 25% 27%;
   --ring: 201 76% 57%;
   --radius: 4px;
 }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Nunito', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(180deg, #3BADE5 30%, #172A33 15%);
+  background: linear-gradient(135deg, #3BADE5 0%, #132337 100%);
   background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+  color: #f4f4f4;
+  min-height: 100vh;
 }
 
 .glass-card {
-  background: rgba(59, 173, 229, 0.1);
+  background: linear-gradient(180deg, rgba(59, 173, 229, 0.15) 0%, rgba(23, 42, 51, 0.25) 100%);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 
+    0 4px 24px -1px rgba(0, 0, 0, 0.2),
+    0 0 1px 0 rgba(0, 0, 0, 0.16);
+}
+
+.table-hover-row:hover {
+  background: linear-gradient(90deg, rgba(59, 173, 229, 0.1) 0%, rgba(23, 42, 51, 0.2) 100%);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(59, 173, 229, 0.5);
+  border-radius: 3px;
 }
