@@ -7,6 +7,7 @@ import StatsCards from './components/StatsCards';
 import SearchBar from './components/SearchBar';
 import DefectsTable from './components/DefectsTable';
 import DefectDialog from './components/DefectDialog';
+import ChatBot from './components/ChatBot/ChatBot';
 import { supabase } from './supabaseClient';
 
 // Utility function for fetching user's vessels
@@ -42,6 +43,7 @@ function App() {
   const [assignedVessels, setAssignedVessels] = useState([]);
   const [vesselNames, setVesselNames] = useState({});
   const [loading, setLoading] = useState(true);
+  const [isPdfGenerating, setIsPdfGenerating] = useState(false);
   
   // Filter states
   const [currentVessel, setCurrentVessel] = useState('');
@@ -135,6 +137,23 @@ function App() {
       return matchesVessel && matchesStatus && matchesCriticality && matchesSearch;
     });
   }, [data, currentVessel, statusFilter, criticalityFilter, searchTerm]);
+
+  // PDF Generation handler
+  const handleGeneratePdf = useCallback(async () => {
+    setIsPdfGenerating(true);
+    try {
+      // PDF generation will be handled in ChatBot component
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPdfGenerating(false);
+    }
+  }, [toast]);
 
   // Handlers
   const handleAddDefect = () => {
@@ -287,6 +306,18 @@ function App() {
                 onSave={handleSaveDefect}
                 vessels={vesselNames}
                 isNew={currentDefect?.id?.startsWith('temp-')}
+              />
+
+              <ChatBot 
+                data={filteredData}
+                vesselName={vesselNames[currentVessel] || 'All Vessels'}
+                filters={{
+                  status: statusFilter,
+                  criticality: criticalityFilter,
+                  search: searchTerm
+                }}
+                isPdfGenerating={isPdfGenerating}
+                onGeneratePdf={handleGeneratePdf}
               />
             </main>
           </>
