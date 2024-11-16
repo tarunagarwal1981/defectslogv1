@@ -38,7 +38,7 @@ const StatsCards = ({ data }) => {
     // Calculate month-over-month change
     const lastMonth = new Date();
     lastMonth.setMonth(lastMonth.getMonth() - 1);
-    const previousMonth = data.filter(item => 
+    const previousMonth = data.filter(item =>
       new Date(item['Date Reported']) < lastMonth &&
       new Date(item['Date Reported']) > new Date(lastMonth.setMonth(lastMonth.getMonth() - 1))
     );
@@ -65,25 +65,25 @@ const StatsCards = ({ data }) => {
       {/* Equipment Distribution Card */}
       <Card className="bg-[#132337]/30 backdrop-blur-sm border border-white/10">
         <CardContent className="p-6">
-          <h3 className="text-xs font-medium text-[#f4f4f4]/90 mb-8 ml-1">
+          <h3 className="text-xs font-medium text-[#f4f4f4]/90 mt-2 mb-8 ml-1">
             Equipment Distribution
           </h3>
           <div className="h-[200px] w-full flex items-center justify-center">
-            <ResponsiveContainer width="120%" height={180}>
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={equipmentData}
                 layout="vertical"
-                margin={{ top: 0, right: 40, bottom: 0, left: 120 }}
+                margin={{ top: 20, right: 40, bottom: 20, left: 120 }}
               >
-                <XAxis 
-                  type="number" 
+                <XAxis
+                  type="number"
                   tick={{ fill: '#f4f4f4', fontSize: 10 }}
                   axisLine={{ stroke: '#ffffff20' }}
                   tickLine={{ stroke: '#ffffff20' }}
                 />
-                <YAxis 
-                  type="category" 
-                  dataKey="name" 
+                <YAxis
+                  type="category"
+                  dataKey="name"
                   tick={{ fill: '#f4f4f4', fontSize: 10 }}
                   width={120}
                   axisLine={false}
@@ -96,7 +96,7 @@ const StatsCards = ({ data }) => {
                   barSize={12}
                 >
                   {equipmentData.map((entry, index) => (
-                    <Cell 
+                    <Cell
                       key={`cell-${index}`}
                       fill="url(#equipmentGradient)"
                       className="hover:brightness-110 transition-all cursor-pointer"
@@ -118,10 +118,10 @@ const StatsCards = ({ data }) => {
       {/* Status Overview Card */}
       <Card className="bg-[#132337]/30 backdrop-blur-sm border border-white/10">
         <CardContent className="p-6">
-          <h3 className="text-xs font-medium text-[#f4f4f4]/90 mb-8 ml-1">
+          <h3 className="text-xs font-medium text-[#f4f4f4]/90 mt-2 mb-8 ml-1">
             Status Overview
           </h3>
-          
+
           <div className="grid grid-cols-2 gap-4 mb-8">
             <div className="text-center">
               <div className="text-2xl font-bold text-[#3BADE5]">
@@ -132,8 +132,8 @@ const StatsCards = ({ data }) => {
                 <span className={`inline-flex items-center ml-2 text-[10px] ${
                   statusMetrics.rateChange >= 0 ? 'text-green-400' : 'text-red-400'
                 }`}>
-                  {statusMetrics.rateChange >= 0 ? 
-                    <TrendingUp className="h-3 w-3 mr-0.5" /> : 
+                  {statusMetrics.rateChange >= 0 ?
+                    <TrendingUp className="h-3 w-3 mr-0.5" /> :
                     <TrendingDown className="h-3 w-3 mr-0.5" />
                   }
                   {Math.abs(statusMetrics.rateChange).toFixed(1)}%
@@ -160,7 +160,7 @@ const StatsCards = ({ data }) => {
                 </span>
               </div>
               <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                <div 
+                <div
                   className="h-full bg-gradient-to-r from-green-500/50 to-green-500 rounded-full transition-all duration-500"
                   style={{ width: `${statusMetrics.closureRate}%` }}
                 />
@@ -176,7 +176,7 @@ const StatsCards = ({ data }) => {
                 </span>
               </div>
               <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                <div 
+                <div
                   className="h-full bg-gradient-to-r from-red-500/50 to-red-500 rounded-full transition-all duration-500"
                   style={{ width: `${statusMetrics.openRate}%` }}
                 />
@@ -193,7 +193,7 @@ const StatsCards = ({ data }) => {
               </div>
               <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
                 {statusMetrics.inProgressRate > 0 ? (
-                  <div 
+                  <div
                     className="h-full bg-gradient-to-r from-yellow-500/50 to-yellow-500 rounded-full transition-all duration-500"
                     style={{ width: `${statusMetrics.inProgressRate}%` }}
                   />
