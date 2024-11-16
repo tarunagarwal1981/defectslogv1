@@ -6,27 +6,13 @@ import { TrendingUp, TrendingDown } from 'lucide-react';
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-[#132337] px-2 py-1 rounded-[4px] border border-[#3BADE5]/20 shadow-lg">
-        <p className="text-[10px] text-[#f4f4f4]">
-          {`${payload[0].payload.name}: ${payload[0].value}`}
-        </p>
+      <div className="bg-[#132337] px-2.5 py-1.5 rounded-[4px] border border-[#3BADE5]/20 shadow-lg">
+        <p className="text-[10px] text-[#f4f4f4]">{`${payload[0].payload.name}: ${payload[0].value}`}</p>
       </div>
     );
   }
   return null;
 };
-
-const ProgressBar = ({ value, max, className, showBorder = false }) => (
-  <div className="relative h-2 w-full bg-white/5 rounded overflow-hidden">
-    <div 
-      className={`absolute top-0 left-0 h-full rounded ${className}`}
-      style={{ width: `${(value / max) * 100}%` }}
-    />
-    {showBorder && (
-      <div className="absolute inset-0 border border-dashed border-white/20 rounded" />
-    )}
-  </div>
-);
 
 const StatsCards = ({ data }) => {
   // Equipment data processing
@@ -42,7 +28,7 @@ const StatsCards = ({ data }) => {
       .slice(0, 8);
   }, [data]);
 
-  // Status data processing
+  // Status metrics calculation
   const statusMetrics = useMemo(() => {
     const total = data.length;
     const closed = data.filter(item => item['Status (Vessel)'] === 'CLOSED').length;
@@ -52,20 +38,24 @@ const StatsCards = ({ data }) => {
     // Calculate month-over-month change
     const lastMonth = new Date();
     lastMonth.setMonth(lastMonth.getMonth() - 1);
-    const previousClosedRate = data
-      .filter(item => new Date(item['Date Reported']) < lastMonth)
-      .filter(item => item['Status (Vessel)'] === 'CLOSED').length / total * 100;
-    const currentClosedRate = (closed / total) * 100;
-    const rateChange = currentClosedRate - previousClosedRate;
+    const previousMonth = data.filter(item => 
+      new Date(item['Date Reported']) < lastMonth &&
+      new Date(item['Date Reported']) > new Date(lastMonth.setMonth(lastMonth.getMonth() - 1))
+    );
+    const previousTotal = previousMonth.length || 1; // Avoid division by zero
+    const previousClosed = previousMonth.filter(item => item['Status (Vessel)'] === 'CLOSED').length;
+    const previousRate = (previousClosed / previousTotal) * 100;
+    const currentRate = (closed / (total || 1)) * 100;
+    const rateChange = currentRate - previousRate;
 
     return {
       total,
       closed,
       open,
       inProgress,
-      closureRate: (closed / total) * 100,
-      openRate: (open / total) * 100,
-      inProgressRate: (inProgress / total) * 100,
+      closureRate: (closed / (total || 1)) * 100,
+      openRate: (open / (total || 1)) * 100,
+      inProgressRate: (inProgress / (total || 1)) * 100,
       rateChange
     };
   }, [data]);
@@ -74,16 +64,16 @@ const StatsCards = ({ data }) => {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       {/* Equipment Distribution Card */}
       <Card className="bg-[#132337]/30 backdrop-blur-sm border border-white/10">
-        <CardContent className="p-5">
-          <h3 className="text-xs font-medium text-[#f4f4f4] mb-6">
+        <CardContent className="p-6">
+          <h3 className="text-xs font-medium text-[#f4f4f4]/90 mb-8 ml-1">
             Equipment Distribution
           </h3>
-          <div className="h-[220px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[200px] w-full flex items-center justify-center">
+            <ResponsiveContainer width="100%" height={180}>
               <BarChart
                 data={equipmentData}
                 layout="vertical"
-                margin={{ top: 0, right: 40, bottom: 0, left: 100 }}
+                margin={{ top: 0, right: 40, bottom: 0, left: 120 }}
               >
                 <XAxis 
                   type="number" 
@@ -95,7 +85,7 @@ const StatsCards = ({ data }) => {
                   type="category" 
                   dataKey="name" 
                   tick={{ fill: '#f4f4f4', fontSize: 10 }}
-                  width={100}
+                  width={120}
                   axisLine={false}
                   tickLine={false}
                 />
@@ -109,7 +99,7 @@ const StatsCards = ({ data }) => {
                     <Cell 
                       key={`cell-${index}`}
                       fill="url(#equipmentGradient)"
-                      className="hover:brightness-110 transition-all"
+                      className="hover:brightness-110 transition-all cursor-pointer"
                     />
                   ))}
                 </Bar>
@@ -127,25 +117,24 @@ const StatsCards = ({ data }) => {
 
       {/* Status Overview Card */}
       <Card className="bg-[#132337]/30 backdrop-blur-sm border border-white/10">
-        <CardContent className="p-5">
-          <h3 className="text-xs font-medium text-[#f4f4f4] mb-6">
+        <CardContent className="p-6">
+          <h3 className="text-xs font-medium text-[#f4f4f4]/90 mb-8 ml-1">
             Status Overview
           </h3>
           
-          {/* Main metrics */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-2 gap-4 mb-8">
             <div className="text-center">
               <div className="text-2xl font-bold text-[#3BADE5]">
                 {statusMetrics.closureRate.toFixed(1)}%
               </div>
-              <div className="text-xs text-[#f4f4f4]/60 mt-1">
+              <div className="text-xs text-[#f4f4f4]/60 mt-1.5">
                 Closure Rate
                 <span className={`inline-flex items-center ml-2 text-[10px] ${
                   statusMetrics.rateChange >= 0 ? 'text-green-400' : 'text-red-400'
                 }`}>
                   {statusMetrics.rateChange >= 0 ? 
-                    <TrendingUp className="h-3 w-3 mr-1" /> : 
-                    <TrendingDown className="h-3 w-3 mr-1" />
+                    <TrendingUp className="h-3 w-3 mr-0.5" /> : 
+                    <TrendingDown className="h-3 w-3 mr-0.5" />
                   }
                   {Math.abs(statusMetrics.rateChange).toFixed(1)}%
                 </span>
@@ -155,49 +144,63 @@ const StatsCards = ({ data }) => {
               <div className="text-2xl font-bold text-[#f4f4f4]">
                 {statusMetrics.total}
               </div>
-              <div className="text-xs text-[#f4f4f4]/60 mt-1">
+              <div className="text-xs text-[#f4f4f4]/60 mt-1.5">
                 Total Defects
               </div>
             </div>
           </div>
 
-          {/* Status breakdown */}
           <div className="space-y-4">
+            {/* Closed Status */}
             <div>
-              <div className="flex justify-between mb-1">
+              <div className="flex justify-between mb-2">
                 <span className="text-xs text-green-400">Closed</span>
-                <span className="text-xs text-green-400">{statusMetrics.closed} ({statusMetrics.closureRate.toFixed(1)}%)</span>
+                <span className="text-xs text-green-400">
+                  {statusMetrics.closed} ({statusMetrics.closureRate.toFixed(1)}%)
+                </span>
               </div>
-              <ProgressBar 
-                value={statusMetrics.closed} 
-                max={statusMetrics.total}
-                className="bg-gradient-to-r from-green-500/50 to-green-500"
-              />
+              <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-green-500/50 to-green-500 rounded-full transition-all duration-500"
+                  style={{ width: `${statusMetrics.closureRate}%` }}
+                />
+              </div>
             </div>
 
+            {/* Open Status */}
             <div>
-              <div className="flex justify-between mb-1">
+              <div className="flex justify-between mb-2">
                 <span className="text-xs text-red-400">Open</span>
-                <span className="text-xs text-red-400">{statusMetrics.open} ({statusMetrics.openRate.toFixed(1)}%)</span>
+                <span className="text-xs text-red-400">
+                  {statusMetrics.open} ({statusMetrics.openRate.toFixed(1)}%)
+                </span>
               </div>
-              <ProgressBar 
-                value={statusMetrics.open} 
-                max={statusMetrics.total}
-                className="bg-gradient-to-r from-red-500/50 to-red-500"
-              />
+              <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-red-500/50 to-red-500 rounded-full transition-all duration-500"
+                  style={{ width: `${statusMetrics.openRate}%` }}
+                />
+              </div>
             </div>
 
+            {/* In Progress Status */}
             <div>
-              <div className="flex justify-between mb-1">
+              <div className="flex justify-between mb-2">
                 <span className="text-xs text-yellow-400">In Progress</span>
-                <span className="text-xs text-yellow-400">{statusMetrics.inProgress} ({statusMetrics.inProgressRate.toFixed(1)}%)</span>
+                <span className="text-xs text-yellow-400">
+                  {statusMetrics.inProgress} ({statusMetrics.inProgressRate.toFixed(1)}%)
+                </span>
               </div>
-              <ProgressBar 
-                value={statusMetrics.inProgress} 
-                max={statusMetrics.total}
-                className="bg-gradient-to-r from-yellow-500/50 to-yellow-500"
-                showBorder={statusMetrics.inProgress === 0}
-              />
+              <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                {statusMetrics.inProgressRate > 0 ? (
+                  <div 
+                    className="h-full bg-gradient-to-r from-yellow-500/50 to-yellow-500 rounded-full transition-all duration-500"
+                    style={{ width: `${statusMetrics.inProgressRate}%` }}
+                  />
+                ) : (
+                  <div className="h-full w-full border border-dashed border-white/20 rounded-full" />
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
