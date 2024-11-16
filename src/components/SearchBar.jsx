@@ -1,36 +1,37 @@
+// src/components/SearchBar.jsx
 import React from 'react';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 const SearchBar = ({ onSearch, onFilterStatus, onFilterCriticality, status, criticality }) => {
   return (
-    <div className="flex items-center justify-between gap-3 px-2 py-2 mb-2">
-      <div className="w-full max-w-xs">
+    <div className="flex flex-col md:flex-row gap-3 px-2 py-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex-1">
         <Input
           placeholder="Search defects..."
           onChange={(e) => onSearch(e.target.value)}
-          className="h-8 text-xs bg-[#132337]/30 border-white/10 focus:ring-[#3BADE5] focus:ring-1"
+          className="max-w-sm"
         />
       </div>
       
-      <div className="flex gap-2">
+      <div className="flex flex-row gap-4">
         <Select value={status} onValueChange={onFilterStatus}>
-          <SelectTrigger className="w-[140px] h-8 text-xs bg-[#132337]/30 border-white/10">
-            <SelectValue placeholder="All Status" />
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by Status" />
           </SelectTrigger>
-          <SelectContent className="text-xs">
+          <SelectContent>
             <SelectItem value="">All Status</SelectItem>
             <SelectItem value="OPEN">Open</SelectItem>
             <SelectItem value="IN PROGRESS">In Progress</SelectItem>
-            <SelectItem value="CLOSED">Closed</SelectItem>
+            <SelectItem value="COMPLETED">Completed</SelectItem>
           </SelectContent>
         </Select>
 
         <Select value={criticality} onValueChange={onFilterCriticality}>
-          <SelectTrigger className="w-[140px] h-8 text-xs bg-[#132337]/30 border-white/10">
-            <SelectValue placeholder="All Criticality" />
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by Criticality" />
           </SelectTrigger>
-          <SelectContent className="text-xs">
+          <SelectContent>
             <SelectItem value="">All Criticality</SelectItem>
             <SelectItem value="High">High</SelectItem>
             <SelectItem value="Medium">Medium</SelectItem>
