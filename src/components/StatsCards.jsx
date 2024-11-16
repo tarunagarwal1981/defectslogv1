@@ -73,7 +73,7 @@ const StatsCards = ({ data }) => {
               <BarChart
                 data={equipmentData}
                 layout="vertical"
-                margin={{ top: 10, right: 30, bottom: 10, left: 80 }}
+                margin={{ top: 10, right: 30, bottom: 10, left: 60 }}
               >
                 <XAxis
                   type="number"
