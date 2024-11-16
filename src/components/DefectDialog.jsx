@@ -1,8 +1,10 @@
-// src/components/DefectDialog.jsx
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
-import { Input } from './ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog';
 
 const DefectDialog = ({ 
   isOpen, 
@@ -11,151 +13,112 @@ const DefectDialog = ({
   onChange, 
   onSave, 
   vessels, 
-  isNew = false 
+  isNew 
 }) => {
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSave(defect);
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-sm font-medium">
             {isNew ? 'Add New Defect' : 'Edit Defect'}
           </DialogTitle>
         </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Vessel</label>
-              <Select
-                value={defect?.vessel_id || ''}
-                onValueChange={(value) => onChange('vessel_id', value)}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Vessel" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Select Vessel</SelectItem>
-                  {Object.entries(vessels).map(([id, name]) => (
-                    <SelectItem key={id} value={id}>
-                      {name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Criticality</label>
-              <Select
-                value={defect?.Criticality || ''}
-                onValueChange={(value) => onChange('Criticality', value)}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Criticality" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="High">High</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="Low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        <div className="grid gap-3 py-3">
+          <div className="grid gap-1.5">
+            <label className="text-xs font-medium text-[#f4f4f4]/80">Vessel</label>
+            <select
+              className="flex h-8 w-full rounded-[4px] border border-white/10 bg-[#132337]/50 px-2 text-xs text-[#f4f4f4] focus:outline-none focus:ring-1 focus:ring-[#3BADE5]"
+              value={defect?.vessel_id || ''}
+              onChange={(e) => onChange('vessel_id', e.target.value)}
+            >
+              <option value="">Select Vessel</option>
+              {Object.entries(vessels).map(([id, name]) => (
+                <option key={id} value={id}>{name}</option>
+              ))}
+            </select>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Equipment</label>
-            <Input
+          <div className="grid gap-1.5">
+            <label className="text-xs font-medium text-[#f4f4f4]/80">Equipment</label>
+            <input
+              className="flex h-8 w-full rounded-[4px] border border-white/10 bg-[#132337]/50 px-2 text-xs text-[#f4f4f4] focus:outline-none focus:ring-1 focus:ring-[#3BADE5]"
               value={defect?.Equipments || ''}
               onChange={(e) => onChange('Equipments', e.target.value)}
               placeholder="Enter equipment name"
-              required
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Description</label>
+          <div className="grid gap-1.5">
+            <label className="text-xs font-medium text-[#f4f4f4]/80">Description</label>
             <textarea
-              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[100px]"
+              className="flex h-16 w-full rounded-[4px] border border-white/10 bg-[#132337]/50 px-2 py-1.5 text-xs text-[#f4f4f4] focus:outline-none focus:ring-1 focus:ring-[#3BADE5]"
               value={defect?.Description || ''}
               onChange={(e) => onChange('Description', e.target.value)}
               placeholder="Enter defect description"
-              required
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Action Planned</label>
+          <div className="grid gap-1.5">
+            <label className="text-xs font-medium text-[#f4f4f4]/80">Action Planned</label>
             <textarea
-              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[100px]"
+              className="flex h-16 w-full rounded-[4px] border border-white/10 bg-[#132337]/50 px-2 py-1.5 text-xs text-[#f4f4f4] focus:outline-none focus:ring-1 focus:ring-[#3BADE5]"
               value={defect?.['Action Planned'] || ''}
               onChange={(e) => onChange('Action Planned', e.target.value)}
               placeholder="Enter planned action"
-              required
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Date Reported</label>
-              <Input
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-1.5">
+              <label className="text-xs font-medium text-[#f4f4f4]/80">Date Reported</label>
+              <input
                 type="date"
+                className="flex h-8 w-full rounded-[4px] border border-white/10 bg-[#132337]/50 px-2 text-xs text-[#f4f4f4] focus:outline-none focus:ring-1 focus:ring-[#3BADE5]"
                 value={defect?.['Date Reported'] || ''}
                 onChange={(e) => onChange('Date Reported', e.target.value)}
-                required
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Date Completed</label>
-              <Input
+            <div className="grid gap-1.5">
+              <label className="text-xs font-medium text-[#f4f4f4]/80">Date Completed</label>
+              <input
                 type="date"
+                className="flex h-8 w-full rounded-[4px] border border-white/10 bg-[#132337]/50 px-2 text-xs text-[#f4f4f4] focus:outline-none focus:ring-1 focus:ring-[#3BADE5]"
                 value={defect?.['Date Completed'] || ''}
                 onChange={(e) => onChange('Date Completed', e.target.value)}
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Status</label>
-            <Select
-              value={defect?.['Status (Vessel)'] || ''}
-              onValueChange={(value) => onChange('Status (Vessel)', value)}
-              required
+          <div className="grid gap-1.5">
+            <label className="text-xs font-medium text-[#f4f4f4]/80">Criticality</label>
+            <select
+              className="flex h-8 w-full rounded-[4px] border border-white/10 bg-[#132337]/50 px-2 text-xs text-[#f4f4f4] focus:outline-none focus:ring-1 focus:ring-[#3BADE5]"
+              value={defect?.Criticality || ''}
+              onChange={(e) => onChange('Criticality', e.target.value)}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Open">Open</SelectItem>
-                <SelectItem value="In Progress">In Progress</SelectItem>
-                <SelectItem value="Completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
+              <option value="">Select Criticality</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
           </div>
+        </div>
 
-          <div className="flex justify-end space-x-4 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border rounded-md hover:bg-accent"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-            >
-              {isNew ? 'Create' : 'Save Changes'}
-            </button>
-          </div>
-        </form>
+        <div className="flex justify-end gap-2 pt-2">
+          <button
+            onClick={onClose}
+            className="h-7 px-3 text-xs font-medium rounded-[4px] border border-white/10 hover:bg-white/5"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onSave(defect)}
+            className="h-7 px-3 text-xs font-medium rounded-[4px] bg-[#3BADE5] hover:bg-[#3BADE5]/90"
+          >
+            {isNew ? 'Add Defect' : 'Save Changes'}
+          </button>
+        </div>
       </DialogContent>
     </Dialog>
   );
