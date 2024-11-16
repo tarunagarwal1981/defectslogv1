@@ -65,15 +65,15 @@ const StatsCards = ({ data }) => {
       {/* Equipment Distribution Card */}
       <Card className="bg-[#132337]/30 backdrop-blur-sm border border-white/10">
         <CardContent className="p-6">
-          <h3 className="text-xs font-medium text-[#f4f4f4]/90 mt-2 mb-8 ml-1">
+          <h3 className="text-sm font-medium text-[#f4f4f4]/90 mt-2 mb-6 ml-1">
             Equipment Distribution
           </h3>
-          <div className="h-[200px] w-full flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[220px] w-full flex items-center justify-center">
+            <ResponsiveContainer width="95%" height="95%">
               <BarChart
                 data={equipmentData}
                 layout="vertical"
-                margin={{ top: 20, right: 40, bottom: 20, left: 120 }}
+                margin={{ top: 10, right: 30, bottom: 10, left: 100 }}
               >
                 <XAxis
                   type="number"
@@ -85,7 +85,7 @@ const StatsCards = ({ data }) => {
                   type="category"
                   dataKey="name"
                   tick={{ fill: '#f4f4f4', fontSize: 10 }}
-                  width={120}
+                  width={100}
                   axisLine={false}
                   tickLine={false}
                 />
@@ -118,11 +118,11 @@ const StatsCards = ({ data }) => {
       {/* Status Overview Card */}
       <Card className="bg-[#132337]/30 backdrop-blur-sm border border-white/10">
         <CardContent className="p-6">
-          <h3 className="text-xs font-medium text-[#f4f4f4]/90 mt-2 mb-8 ml-1">
+          <h3 className="text-sm font-medium text-[#f4f4f4]/90 mt-2 mb-6 ml-1">
             Status Overview
           </h3>
 
-          <div className="grid grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-[#3BADE5]">
                 {statusMetrics.closureRate.toFixed(1)}%
