@@ -8,8 +8,8 @@ import SearchBar from './components/SearchBar';
 import DefectsTable from './components/DefectsTable';
 import DefectDialog from './components/DefectDialog';
 import { supabase } from './supabaseClient';
-import { exportToCSV } from './utils/exportToCSV';
 
+// Utility function for fetching user's vessels
 const getUserVessels = async (userId) => {
   try {
     const { data, error } = await supabase
@@ -33,18 +33,27 @@ const getUserVessels = async (userId) => {
 
 function App() {
   const { toast } = useToast();
+  
+  // User and auth states
   const [session, setSession] = useState(null);
+  
+  // Data states
   const [data, setData] = useState([]);
   const [assignedVessels, setAssignedVessels] = useState([]);
   const [vesselNames, setVesselNames] = useState({});
   const [loading, setLoading] = useState(true);
+  
+  // Filter states
   const [currentVessel, setCurrentVessel] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [criticalityFilter, setCriticalityFilter] = useState('');
+  
+  // Dialog states
   const [isDefectDialogOpen, setIsDefectDialogOpen] = useState(false);
   const [currentDefect, setCurrentDefect] = useState(null);
 
+  // Initialize auth listener
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -59,14 +68,17 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Fetch user data
   const fetchUserData = useCallback(async () => {
     if (!session?.user?.id) return;
 
     try {
       setLoading(true);
       
+      // Get user's vessels with names
       const userVessels = await getUserVessels(session.user.id);
       
+      // Extract vessel IDs and names
       const vesselIds = userVessels.map(v => v.vessel_id);
       const vesselsMap = userVessels.reduce((acc, v) => {
         if (v.vessels) {
@@ -75,6 +87,7 @@ function App() {
         return acc;
       }, {});
 
+      // Fetch defects for assigned vessels
       const { data: defects, error: defectsError } = await supabase
         .from('defects register')
         .select('*')
@@ -108,6 +121,22 @@ function App() {
     }
   }, [session?.user, fetchUserData]);
 
+  // Filter data
+  const filteredData = React.useMemo(() => {
+    return data.filter(defect => {
+      const matchesVessel = !currentVessel || defect.vessel_id === currentVessel;
+      const matchesStatus = !statusFilter || defect['Status (Vessel)'] === statusFilter;
+      const matchesCriticality = !criticalityFilter || defect.Criticality === criticalityFilter;
+      const matchesSearch = !searchTerm || 
+        Object.values(defect).some(value => 
+          String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+      return matchesVessel && matchesStatus && matchesCriticality && matchesSearch;
+    });
+  }, [data, currentVessel, statusFilter, criticalityFilter, searchTerm]);
+
+  // Handlers
   const handleAddDefect = () => {
     if (assignedVessels.length === 0) {
       toast({
@@ -126,10 +155,9 @@ function App() {
       Description: '',
       'Action Planned': '',
       Criticality: '',
+      'Status (Vessel)': 'OPEN',
       'Date Reported': new Date().toISOString().split('T')[0],
       'Date Completed': '',
-      'Status (Vessel)': 'OPEN',
-      Comments: '',
     });
     setIsDefectDialogOpen(true);
   };
@@ -148,10 +176,9 @@ function App() {
         Description: updatedDefect.Description,
         'Action Planned': updatedDefect['Action Planned'],
         Criticality: updatedDefect.Criticality,
+        'Status (Vessel)': updatedDefect['Status (Vessel)'],
         'Date Reported': updatedDefect['Date Reported'],
         'Date Completed': updatedDefect['Date Completed'],
-        'Status (Vessel)': updatedDefect['Status (Vessel)'].toUpperCase(),
-        Comments: updatedDefect.Comments || '',
       };
 
       if (!isNewDefect) {
@@ -179,7 +206,7 @@ function App() {
 
         if (error) throw error;
 
-        setData(prevData => [...prevData, { ...newDefect, SNo: prevData.length + 1 }]);
+        setData(prevData => [...prevData, { ...newDefect }]);
 
         toast({
           title: "Success",
@@ -199,11 +226,6 @@ function App() {
     }
   };
 
-  const handleEditDefect = (defect) => {
-    setCurrentDefect(defect);
-    setIsDefectDialogOpen(true);
-  };
-
   const handleLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -217,39 +239,6 @@ function App() {
       });
     }
   };
-
-  const handleExport = useCallback(() => {
-    try {
-      exportToCSV(filteredData, {
-        status: statusFilter,
-        criticality: criticalityFilter,
-        search: searchTerm
-      });
-    } catch (error) {
-      console.error("Error exporting data:", error);
-      toast({
-        title: "Error",
-        description: "Failed to export data",
-        variant: "destructive",
-      });
-    }
-  }, [filteredData, statusFilter, criticalityFilter, searchTerm, toast]);
-
-  const handleStatusFilter = useCallback((status) => {
-    setStatusFilter(status ? status.toUpperCase() : '');
-  }, []);
-
-  const filteredData = data.filter(defect => {
-    const matchesVessel = !currentVessel || defect.vessel_id === currentVessel;
-    const matchesStatus = !statusFilter || defect['Status (Vessel)'] === statusFilter;
-    const matchesCriticality = !criticalityFilter || defect.Criticality === criticalityFilter;
-    const matchesSearch = !searchTerm || 
-      Object.values(defect).some(value => 
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      );
-
-    return matchesVessel && matchesStatus && matchesCriticality && matchesSearch;
-  });
 
   return (
     <ToastProvider>
@@ -267,9 +256,9 @@ function App() {
             <main className="container mx-auto pt-20">
               <StatsCards data={filteredData} />
               
-              <SearchBar
+              <SearchBar 
                 onSearch={setSearchTerm}
-                onFilterStatus={handleStatusFilter}
+                onFilterStatus={setStatusFilter}
                 onFilterCriticality={setCriticalityFilter}
                 status={statusFilter}
                 criticality={criticalityFilter}
@@ -278,12 +267,11 @@ function App() {
               <DefectsTable
                 data={filteredData}
                 onAddDefect={handleAddDefect}
-                onEditDefect={handleEditDefect}
-                onExport={handleExport}
+                onEditDefect={(defect) => {
+                  setCurrentDefect(defect);
+                  setIsDefectDialogOpen(true);
+                }}
                 loading={loading}
-                searchTerm={searchTerm}
-                statusFilter={statusFilter}
-                criticalityFilter={criticalityFilter}
               />
 
               <DefectDialog
