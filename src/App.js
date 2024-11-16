@@ -8,8 +8,8 @@ import SearchBar from './components/SearchBar';
 import DefectsTable from './components/DefectsTable';
 import DefectDialog from './components/DefectDialog';
 import { supabase } from './supabaseClient';
+import { exportToCSV } from './utils/exportToCSV';
 
-// Utility function for fetching user's vessels
 const getUserVessels = async (userId) => {
   try {
     const { data, error } = await supabase
@@ -45,7 +45,6 @@ function App() {
   const [isDefectDialogOpen, setIsDefectDialogOpen] = useState(false);
   const [currentDefect, setCurrentDefect] = useState(null);
 
-  // Initialize auth listener
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -66,10 +65,8 @@ function App() {
     try {
       setLoading(true);
       
-      // Get user's vessels with names
       const userVessels = await getUserVessels(session.user.id);
       
-      // Extract vessel IDs and names
       const vesselIds = userVessels.map(v => v.vessel_id);
       const vesselsMap = userVessels.reduce((acc, v) => {
         if (v.vessels) {
@@ -78,7 +75,6 @@ function App() {
         return acc;
       }, {});
 
-      // Fetch defects for assigned vessels
       const { data: defects, error: defectsError } = await supabase
         .from('defects register')
         .select('*')
@@ -132,7 +128,8 @@ function App() {
       Criticality: '',
       'Date Reported': new Date().toISOString().split('T')[0],
       'Date Completed': '',
-      'Status (Vessel)': 'Open',
+      'Status (Vessel)': 'OPEN',
+      Comments: '',
     });
     setIsDefectDialogOpen(true);
   };
@@ -153,7 +150,8 @@ function App() {
         Criticality: updatedDefect.Criticality,
         'Date Reported': updatedDefect['Date Reported'],
         'Date Completed': updatedDefect['Date Completed'],
-        'Status (Vessel)': updatedDefect['Status (Vessel)'],
+        'Status (Vessel)': updatedDefect['Status (Vessel)'].toUpperCase(),
+        Comments: updatedDefect.Comments || '',
       };
 
       if (!isNewDefect) {
@@ -220,7 +218,27 @@ function App() {
     }
   };
 
-  // Filter data based on current filters
+  const handleExport = useCallback(() => {
+    try {
+      exportToCSV(filteredData, {
+        status: statusFilter,
+        criticality: criticalityFilter,
+        search: searchTerm
+      });
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to export data",
+        variant: "destructive",
+      });
+    }
+  }, [filteredData, statusFilter, criticalityFilter, searchTerm, toast]);
+
+  const handleStatusFilter = useCallback((status) => {
+    setStatusFilter(status ? status.toUpperCase() : '');
+  }, []);
+
   const filteredData = data.filter(defect => {
     const matchesVessel = !currentVessel || defect.vessel_id === currentVessel;
     const matchesStatus = !statusFilter || defect['Status (Vessel)'] === statusFilter;
@@ -251,7 +269,7 @@ function App() {
               
               <SearchBar
                 onSearch={setSearchTerm}
-                onFilterStatus={setStatusFilter}
+                onFilterStatus={handleStatusFilter}
                 onFilterCriticality={setCriticalityFilter}
                 status={statusFilter}
                 criticality={criticalityFilter}
@@ -261,7 +279,11 @@ function App() {
                 data={filteredData}
                 onAddDefect={handleAddDefect}
                 onEditDefect={handleEditDefect}
+                onExport={handleExport}
                 loading={loading}
+                searchTerm={searchTerm}
+                statusFilter={statusFilter}
+                criticalityFilter={criticalityFilter}
               />
 
               <DefectDialog
