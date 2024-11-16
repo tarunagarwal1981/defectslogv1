@@ -69,11 +69,11 @@ const StatsCards = ({ data }) => {
             Equipment Distribution
           </h3>
           <div className="h-[220px] w-full flex items-center justify-center">
-            <ResponsiveContainer width="95%" height="95%">
+            <ResponsiveContainer width="100%" height="95%">
               <BarChart
                 data={equipmentData}
                 layout="vertical"
-                margin={{ top: 10, right: 30, bottom: 10, left: 100 }}
+                margin={{ top: 10, right: 30, bottom: 10, left: 80 }}
               >
                 <XAxis
                   type="number"
