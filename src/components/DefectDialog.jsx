@@ -34,18 +34,18 @@ const DefectDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-[#0B1623]">
         <DialogHeader>
-          <DialogTitle className="text-sm font-medium">
+          <DialogTitle className="text-sm font-medium text-white">
             {isNew ? 'Add New Defect' : 'Edit Defect'}
           </DialogTitle>
         </DialogHeader>
         <div className="grid gap-3 py-3">
           {/* Vessel Selection */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-[#f4f4f4]/80">Vessel</label>
+            <label className="text-xs font-medium text-white/80">Vessel</label>
             <select
-              className="flex h-8 w-full rounded-[4px] border border-white/10 bg-[#132337]/50 px-2 text-xs text-[#f4f4f4] focus:outline-none focus:ring-1 focus:ring-[#3BADE5]"
+              className="flex h-8 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
               value={defect?.vessel_id || ''}
               onChange={(e) => onChange('vessel_id', e.target.value)}
               required
@@ -59,9 +59,9 @@ const DefectDialog = ({
 
           {/* Equipment Dropdown */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-[#f4f4f4]/80">Equipment</label>
+            <label className="text-xs font-medium text-white/80">Equipment</label>
             <select
-              className="flex h-8 w-full rounded-[4px] border border-white/10 bg-[#132337]/50 px-2 text-xs text-[#f4f4f4] focus:outline-none focus:ring-1 focus:ring-[#3BADE5]"
+              className="flex h-8 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
               value={defect?.Equipments || ''}
               onChange={(e) => onChange('Equipments', e.target.value)}
               required
@@ -88,12 +88,11 @@ const DefectDialog = ({
             </select>
           </div>
 
-          {/* Rest of the component remains the same */}
           {/* Description */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-[#f4f4f4]/80">Description</label>
+            <label className="text-xs font-medium text-white/80">Description</label>
             <textarea
-              className="flex h-16 w-full rounded-[4px] border border-white/10 bg-[#132337]/50 px-2 py-1.5 text-xs text-[#f4f4f4] focus:outline-none focus:ring-1 focus:ring-[#3BADE5]"
+              className="flex h-16 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
               value={defect?.Description || ''}
               onChange={(e) => onChange('Description', e.target.value)}
               placeholder="Enter defect description"
@@ -103,9 +102,9 @@ const DefectDialog = ({
 
           {/* Action Planned */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-[#f4f4f4]/80">Action Planned</label>
+            <label className="text-xs font-medium text-white/80">Action Planned</label>
             <textarea
-              className="flex h-16 w-full rounded-[4px] border border-white/10 bg-[#132337]/50 px-2 py-1.5 text-xs text-[#f4f4f4] focus:outline-none focus:ring-1 focus:ring-[#3BADE5]"
+              className="flex h-16 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
               value={defect?.['Action Planned'] || ''}
               onChange={(e) => onChange('Action Planned', e.target.value)}
               placeholder="Enter planned action"
@@ -115,9 +114,9 @@ const DefectDialog = ({
 
           {/* Status */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-[#f4f4f4]/80">Status</label>
+            <label className="text-xs font-medium text-white/80">Status</label>
             <select
-              className="flex h-8 w-full rounded-[4px] border border-white/10 bg-[#132337]/50 px-2 text-xs text-[#f4f4f4] focus:outline-none focus:ring-1 focus:ring-[#3BADE5]"
+              className="flex h-8 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
               value={defect?.['Status (Vessel)'] || ''}
               onChange={(e) => onChange('Status (Vessel)', e.target.value)}
               required
@@ -131,9 +130,9 @@ const DefectDialog = ({
 
           {/* Criticality */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-[#f4f4f4]/80">Criticality</label>
+            <label className="text-xs font-medium text-white/80">Criticality</label>
             <select
-              className="flex h-8 w-full rounded-[4px] border border-white/10 bg-[#132337]/50 px-2 text-xs text-[#f4f4f4] focus:outline-none focus:ring-1 focus:ring-[#3BADE5]"
+              className="flex h-8 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
               value={defect?.Criticality || ''}
               onChange={(e) => onChange('Criticality', e.target.value)}
               required
@@ -148,20 +147,20 @@ const DefectDialog = ({
           {/* Dates */}
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
-              <label className="text-xs font-medium text-[#f4f4f4]/80">Date Reported</label>
+              <label className="text-xs font-medium text-white/80">Date Reported</label>
               <input
                 type="date"
-                className="flex h-8 w-full rounded-[4px] border border-white/10 bg-[#132337]/50 px-2 text-xs text-[#f4f4f4] focus:outline-none focus:ring-1 focus:ring-[#3BADE5]"
+                className="flex h-8 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
                 value={defect?.['Date Reported'] || ''}
                 onChange={(e) => onChange('Date Reported', e.target.value)}
                 required
               />
             </div>
             <div className="grid gap-1.5">
-              <label className="text-xs font-medium text-[#f4f4f4]/80">Date Completed</label>
+              <label className="text-xs font-medium text-white/80">Date Completed</label>
               <input
                 type="date"
-                className="flex h-8 w-full rounded-[4px] border border-white/10 bg-[#132337]/50 px-2 text-xs text-[#f4f4f4] focus:outline-none focus:ring-1 focus:ring-[#3BADE5]"
+                className="flex h-8 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
                 value={defect?.['Date Completed'] || ''}
                 onChange={(e) => onChange('Date Completed', e.target.value)}
               />
@@ -170,11 +169,11 @@ const DefectDialog = ({
 
           {/* Associated Files */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-[#f4f4f4]/80">Associated Files</label>
+            <label className="text-xs font-medium text-white/80">Associated Files</label>
             <div className="flex items-center gap-2">
-              <label className="flex items-center gap-2 px-3 py-1.5 rounded-[4px] border border-white/10 bg-[#132337]/50 cursor-pointer hover:bg-white/5">
+              <label className="flex items-center gap-2 px-3 py-1.5 rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] cursor-pointer hover:border-[#3BADE5]/40">
                 <Upload className="h-4 w-4" />
-                <span className="text-xs text-[#f4f4f4]">Upload Files</span>
+                <span className="text-xs text-white">Upload Files</span>
                 <input
                   type="file"
                   multiple
@@ -184,7 +183,7 @@ const DefectDialog = ({
                 />
               </label>
               {files.length > 0 && (
-                <span className="text-xs text-[#f4f4f4]/60">
+                <span className="text-xs text-white/60">
                   {files.length} file(s) selected
                 </span>
               )}
@@ -193,9 +192,9 @@ const DefectDialog = ({
 
           {/* Comments */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-[#f4f4f4]/80">Comments</label>
+            <label className="text-xs font-medium text-white/80">Comments</label>
             <textarea
-              className="flex h-16 w-full rounded-[4px] border border-white/10 bg-[#132337]/50 px-2 py-1.5 text-xs text-[#f4f4f4] focus:outline-none focus:ring-1 focus:ring-[#3BADE5]"
+              className="flex h-16 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
               value={defect?.Comments || ''}
               onChange={(e) => onChange('Comments', e.target.value)}
               placeholder="Add any additional comments"
@@ -206,13 +205,13 @@ const DefectDialog = ({
         <div className="flex justify-end gap-2 pt-2">
           <button
             onClick={onClose}
-            className="h-7 px-3 text-xs font-medium rounded-[4px] border border-white/10 hover:bg-white/5"
+            className="h-7 px-3 text-xs font-medium rounded-[4px] border border-[#3BADE5]/20 hover:border-[#3BADE5]/40 text-white"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="h-7 px-3 text-xs font-medium rounded-[4px] bg-[#3BADE5] hover:bg-[#3BADE5]/90"
+            className="h-7 px-3 text-xs font-medium rounded-[4px] bg-[#3BADE5] hover:bg-[#3BADE5]/90 text-white"
           >
             {isNew ? 'Add Defect' : 'Save Changes'}
           </button>
