@@ -57,18 +57,38 @@ const DefectDialog = ({
             </select>
           </div>
 
-          {/* Equipment */}
+          {/* Equipment Dropdown */}
           <div className="grid gap-1.5">
             <label className="text-xs font-medium text-[#f4f4f4]/80">Equipment</label>
-            <input
+            <select
               className="flex h-8 w-full rounded-[4px] border border-white/10 bg-[#132337]/50 px-2 text-xs text-[#f4f4f4] focus:outline-none focus:ring-1 focus:ring-[#3BADE5]"
               value={defect?.Equipments || ''}
               onChange={(e) => onChange('Equipments', e.target.value)}
-              placeholder="Enter equipment name"
               required
-            />
+            >
+              <option value="">Select Equipment</option>
+              <option value="Air System and Air Compressor">Air System and Air Compressor</option>
+              <option value="Airconditioning & Refrigeration System">Airconditioning & Refrigeration System</option>
+              <option value="Cargo and Ballast System">Cargo and Ballast System</option>
+              <option value="Deck Crane and Grab">Deck Crane and Grab</option>
+              <option value="BWTS">BWTS</option>
+              <option value="Aux Engine">Aux Engine</option>
+              <option value="Main Engine">Main Engine</option>
+              <option value="LO System">LO System</option>
+              <option value="FO System">FO System</option>
+              <option value="FW and SW System">FW and SW System</option>
+              <option value="Load line Item">Load line Item</option>
+              <option value="SOLAS">SOLAS</option>
+              <option value="MARPOL">MARPOL</option>
+              <option value="Navigation and Radio Equipment">Navigation and Radio Equipment</option>
+              <option value="Anchor and Mooring">Anchor and Mooring</option>
+              <option value="Steam System">Steam System</option>
+              <option value="Steering Gear and Rudder">Steering Gear and Rudder</option>
+              <option value="Others">Others</option>
+            </select>
           </div>
 
+          {/* Rest of the component remains the same */}
           {/* Description */}
           <div className="grid gap-1.5">
             <label className="text-xs font-medium text-[#f4f4f4]/80">Description</label>
