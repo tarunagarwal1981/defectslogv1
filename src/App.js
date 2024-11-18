@@ -45,8 +45,8 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [isPdfGenerating, setIsPdfGenerating] = useState(false);
   
-  // Filter states
-  const [currentVessel, setCurrentVessel] = useState('');
+  // Filter states - updated currentVessel to be an array
+  const [currentVessel, setCurrentVessel] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [criticalityFilter, setCriticalityFilter] = useState('');
@@ -124,10 +124,10 @@ function App() {
     }
   }, [session?.user, fetchUserData]);
 
-  // Filter data
+  // Updated filteredData to handle array of selected vessels
   const filteredData = React.useMemo(() => {
     return data.filter(defect => {
-      const matchesVessel = !currentVessel || defect.vessel_id === currentVessel;
+      const matchesVessel = currentVessel.length === 0 || currentVessel.includes(defect.vessel_id);
       const matchesStatus = !statusFilter || defect['Status (Vessel)'] === statusFilter;
       const matchesCriticality = !criticalityFilter || defect.Criticality === criticalityFilter;
       const matchesSearch = !searchTerm || 
@@ -270,6 +270,15 @@ function App() {
     }
   };
 
+  // Get vessel name for ChatBot, now handling multiple selections
+  const getSelectedVesselsDisplay = () => {
+    if (currentVessel.length === 0) return 'All Vessels';
+    if (currentVessel.length === 1) {
+      return vesselNames[currentVessel[0]] || 'All Vessels';
+    }
+    return `${currentVessel.length} Vessels Selected`;
+  };
+
   return (
     <ToastProvider>
       <div className="min-h-screen bg-background">
@@ -321,7 +330,7 @@ function App() {
 
               <ChatBot 
                 data={filteredData}
-                vesselName={vesselNames[currentVessel] || 'All Vessels'}
+                vesselName={getSelectedVesselsDisplay()}
                 filters={{
                   status: statusFilter,
                   criticality: criticalityFilter,
