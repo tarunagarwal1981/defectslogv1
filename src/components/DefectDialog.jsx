@@ -52,7 +52,6 @@ const DefectDialog = ({
   const handleSave = async () => {
     try {
       setSaving(true);
-      console.log('Attempting to save defect:', defect); // Debug log
 
       if (!validateDefect(defect)) {
         setSaving(false);
@@ -74,20 +73,24 @@ const DefectDialog = ({
     }
   };
 
+  const dialogDescription = isNew ? 'Create a new defect record with the form below.' : 'Edit the defect record details with the form below.';
+  const dialogDescriptionId = 'defect-dialog-description';
+
   return (
     <Dialog 
       open={isOpen} 
       onOpenChange={onClose}
-      aria-label={isNew ? "Add New Defect" : "Edit Defect"}
-      aria-describedby="defect-form-description"
     >
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-[#0B1623]">
+      <DialogContent 
+        className="max-w-md max-h-[90vh] overflow-y-auto bg-[#0B1623]"
+        aria-describedby={dialogDescriptionId}
+      >
         <DialogHeader>
           <DialogTitle className="text-sm font-medium text-white">
             {isNew ? 'Add New Defect' : 'Edit Defect'}
           </DialogTitle>
-          <p id="defect-form-description" className="text-xs text-white/60">
-            {isNew ? 'Add a new defect record' : 'Edit existing defect details'}
+          <p id={dialogDescriptionId} className="text-xs text-white/60">
+            {dialogDescription}
           </p>
         </DialogHeader>
         
