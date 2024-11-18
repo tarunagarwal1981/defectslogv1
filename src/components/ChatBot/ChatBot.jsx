@@ -1,24 +1,22 @@
 import React, { useState } from 'react';
-import { MessageCircle, X, FileDown } from 'lucide-react';
+import { MessageCircle, X, FileDown, Shield } from 'lucide-react';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 
 const ChatBot = ({ data, vesselName, filters }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Add text sanitization helper
   const sanitizeText = (text) => {
     if (!text) return '-';
     return text
       .toString()
-      .replace(/[\n\r]+/g, ' ') // Replace line breaks with spaces
-      .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+      .replace(/[\n\r]+/g, ' ')
+      .replace(/\s+/g, ' ')
       .trim()
-      .replace(/[^\x00-\x7F]/g, '') // Remove non-ASCII characters
-      .replace(/[^\w\s-.,]/g, ''); // Keep only alphanumeric, spaces, and basic punctuation
+      .replace(/[^\x00-\x7F]/g, '')
+      .replace(/[^\w\s-.,]/g, '');
   };
 
-  // Add text truncation helper
   const truncateText = (text, maxWidth, fontSize, font) => {
     if (!text) return '-';
     let truncated = sanitizeText(text);
@@ -29,7 +27,6 @@ const ChatBot = ({ data, vesselName, filters }) => {
         let width = font.widthOfTextAtSize(ellipsis, fontSize);
         let result = '';
 
-        // Add characters until we exceed the max width
         for (let i = 0; i < truncated.length; i++) {
           let char = truncated[i];
           let charWidth = font.widthOfTextAtSize(char, fontSize);
@@ -58,7 +55,6 @@ const ChatBot = ({ data, vesselName, filters }) => {
       const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-      // Page configuration
       const margin = {
         top: 540,
         left: 20,
@@ -76,31 +72,25 @@ const ChatBot = ({ data, vesselName, filters }) => {
         color: rgb(0, 0, 0),
       });
 
-      currentPage.drawText(`Vessel: ${sanitizeText(vesselName)}`, {
-        x: margin.left,
-        y: margin.top - 30,
-        size: 12,
-        font: helveticaFont,
-      });
-
       currentPage.drawText(`Generated: ${new Date().toLocaleDateString()}`, {
         x: margin.left,
-        y: margin.top - 50,
+        y: margin.top - 30,
         size: 10,
         font: helveticaFont,
         color: rgb(0.4, 0.4, 0.4),
       });
 
-      // Table configuration
+      // Updated table configuration with Vessel column
       const tableConfig = {
-        startY: margin.top - 90,
+        startY: margin.top - 70,
         columns: [
-          { header: '#', width: 40 },
-          { header: 'Status', width: 80 },
+          { header: '#', width: 30 },
+          { header: 'Vessel', width: 80 },  // Added Vessel column
+          { header: 'Status', width: 70 },
           { header: 'Equipment', width: 120 },
-          { header: 'Description', width: 180 },
-          { header: 'Action Planned', width: 180 },
-          { header: 'Criticality', width: 70 },
+          { header: 'Description', width: 160 },
+          { header: 'Action Planned', width: 160 },
+          { header: 'Criticality', width: 60 },
           { header: 'Reported', width: 70 },
           { header: 'Completed', width: 70 },
         ],
@@ -129,7 +119,6 @@ const ChatBot = ({ data, vesselName, filters }) => {
         currentX += column.width;
       });
 
-      // Draw content
       let currentY = tableConfig.startY - tableConfig.lineHeight;
 
       // Draw header separator
@@ -157,9 +146,10 @@ const ChatBot = ({ data, vesselName, filters }) => {
           });
         }
 
-        // Prepare row data
+        // Prepare row data with vessel name
         const rowData = [
           (index + 1).toString(),
+          sanitizeText(item.vessel_name || vesselName || '-'), // Added vessel name
           sanitizeText(item['Status (Vessel)'] || '-'),
           sanitizeText(item.Equipments || '-'),
           sanitizeText(item.Description || '-'),
@@ -235,7 +225,6 @@ const ChatBot = ({ data, vesselName, filters }) => {
     }
   };
 
-  // UI remains unchanged
   return (
     <>
       <button
@@ -268,29 +257,44 @@ const ChatBot = ({ data, vesselName, filters }) => {
               <X className="h-4 w-4" />
             </button>
           </div>
+
           <div className="p-4">
             <div className="mb-4">
               <p className="text-sm text-white/80 mb-2">
-                Hello! I can help you generate a PDF report of your defects list.
+                Hello! I can help you generate reports and analysis.
               </p>
             </div>
 
-            <button
-              onClick={generatePDF}
-              disabled={loading}
-              className="w-full py-2 px-4 bg-orange-500 text-white text-sm rounded-md
-              hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed
-              flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                'Generating PDF...'
-              ) : (
-                <>
-                  <FileDown className="h-4 w-4" />
-                  Generate Defects Report
-                </>
-              )}
-            </button>
+            <div className="space-y-3">
+              <button
+                onClick={generatePDF}
+                disabled={loading}
+                className="w-full py-2 px-4 bg-orange-500 text-white text-sm rounded-md
+                hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+                flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  'Generating PDF...'
+                ) : (
+                  <>
+                    <FileDown className="h-4 w-4" />
+                    Generate Defects Report
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={() => {
+                  console.log('PSC button clicked');
+                }}
+                className="w-full py-2 px-4 bg-orange-500/20 text-white text-sm rounded-md
+                hover:bg-orange-500/30 transition-colors
+                flex items-center justify-center gap-2"
+              >
+                <Shield className="h-4 w-4" />
+                Expected PSC Observations
+              </button>
+            </div>
           </div>
         </div>
       )}
