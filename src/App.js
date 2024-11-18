@@ -182,69 +182,84 @@ function App() {
   };
 
   const handleSaveDefect = async (updatedDefect) => {
-    try {
-      if (!assignedVessels.includes(updatedDefect.vessel_id)) {
-        throw new Error("Not authorized for this vessel");
-      }
-
-      const isNewDefect = updatedDefect.id?.startsWith('temp-');
-      const defectData = {
-        vessel_id: updatedDefect.vessel_id,
-        vessel_name: vesselNames[updatedDefect.vessel_id],
-        Equipments: updatedDefect.Equipments,
-        Description: updatedDefect.Description,
-        'Action Planned': updatedDefect['Action Planned'],
-        Criticality: updatedDefect.Criticality,
-        'Status (Vessel)': updatedDefect['Status (Vessel)'],
-        'Date Reported': updatedDefect['Date Reported'],
-        'Date Completed': updatedDefect['Date Completed'],
-      };
-
-      if (!isNewDefect) {
-        const { error } = await supabase
-          .from('defects register')
-          .update(defectData)
-          .eq('id', updatedDefect.id);
-
-        if (error) throw error;
-
-        setData(prevData =>
-          prevData.map(d => d.id === updatedDefect.id ? { ...d, ...defectData } : d)
-        );
-
-        toast({
-          title: "Success",
-          description: "Defect updated successfully",
-        });
-      } else {
-        const { data: newDefect, error } = await supabase
-          .from('defects register')
-          .insert(defectData)
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        setData(prevData => [...prevData, { ...newDefect }]);
-
-        toast({
-          title: "Success",
-          description: "New defect added successfully",
-        });
-      }
-
-      setIsDefectDialogOpen(false);
-      setCurrentDefect(null);
-    } catch (error) {
-      console.error("Error saving defect:", error);
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+  try {
+    if (!assignedVessels.includes(updatedDefect.vessel_id)) {
+      throw new Error("Not authorized for this vessel");
     }
-  };
 
+    const isNewDefect = updatedDefect.id?.startsWith('temp-');
+    
+    // Remove temporary ID for new defects
+    const defectData = {
+      vessel_id: updatedDefect.vessel_id,
+      vessel_name: vesselNames[updatedDefect.vessel_id],
+      "Status (Vessel)": updatedDefect['Status (Vessel)'],
+      Equipments: updatedDefect.Equipments,
+      Description: updatedDefect.Description,
+      "Action Planned": updatedDefect['Action Planned'],
+      Criticality: updatedDefect.Criticality,
+      "Date Reported": updatedDefect['Date Reported'],
+      "Date Completed": updatedDefect['Date Completed'] || null,
+      Comments: updatedDefect.Comments || ''
+    };
+
+    console.log('Saving defect data:', defectData); // Debug log
+
+    let result;
+    if (isNewDefect) {
+      // For new defects
+      const { data, error } = await supabase
+        .from('defects register')
+        .insert([defectData])
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Insert error:', error);
+        throw error;
+      }
+      result = data;
+    } else {
+      // For existing defects
+      const { data, error } = await supabase
+        .from('defects register')
+        .update(defectData)
+        .eq('id', updatedDefect.id)
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Update error:', error);
+        throw error;
+      }
+      result = data;
+    }
+
+    // Update local state with the result from Supabase
+    setData(prevData => {
+      if (isNewDefect) {
+        return [...prevData, result];
+      }
+      return prevData.map(d => d.id === result.id ? result : d);
+    });
+
+    toast({
+      title: isNewDefect ? "Defect Added" : "Defect Updated",
+      description: "Successfully saved the defect",
+    });
+
+    setIsDefectDialogOpen(false);
+    setCurrentDefect(null);
+
+  } catch (error) {
+    console.error("Error saving defect:", error);
+    toast({
+      title: "Error",
+      description: error.message || "Failed to save defect",
+      variant: "destructive",
+    });
+  }
+};
   const handleLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
