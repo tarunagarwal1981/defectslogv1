@@ -89,11 +89,12 @@ function App() {
         return acc;
       }, {});
 
-      // Fetch defects for assigned vessels
+      // Fetch defects for assigned vessels, sorted by date (newest first)
       const { data: defects, error: defectsError } = await supabase
         .from('defects register')
         .select('*')
-        .in('vessel_id', vesselIds);
+        .in('vessel_id', vesselIds)
+        .order('Date Reported', { ascending: false });
 
       if (defectsError) throw defectsError;
 
@@ -182,84 +183,79 @@ function App() {
   };
 
   const handleSaveDefect = async (updatedDefect) => {
-  try {
-    if (!assignedVessels.includes(updatedDefect.vessel_id)) {
-      throw new Error("Not authorized for this vessel");
-    }
-
-    const isNewDefect = updatedDefect.id?.startsWith('temp-');
-    
-    // Remove temporary ID for new defects
-    const defectData = {
-      vessel_id: updatedDefect.vessel_id,
-      vessel_name: vesselNames[updatedDefect.vessel_id],
-      "Status (Vessel)": updatedDefect['Status (Vessel)'],
-      Equipments: updatedDefect.Equipments,
-      Description: updatedDefect.Description,
-      "Action Planned": updatedDefect['Action Planned'],
-      Criticality: updatedDefect.Criticality,
-      "Date Reported": updatedDefect['Date Reported'],
-      "Date Completed": updatedDefect['Date Completed'] || null,
-      Comments: updatedDefect.Comments || ''
-    };
-
-    console.log('Saving defect data:', defectData); // Debug log
-
-    let result;
-    if (isNewDefect) {
-      // For new defects
-      const { data, error } = await supabase
-        .from('defects register')
-        .insert([defectData])
-        .select('*')
-        .single();
-
-      if (error) {
-        console.error('Insert error:', error);
-        throw error;
+    try {
+      if (!assignedVessels.includes(updatedDefect.vessel_id)) {
+        throw new Error("Not authorized for this vessel");
       }
-      result = data;
-    } else {
-      // For existing defects
-      const { data, error } = await supabase
-        .from('defects register')
-        .update(defectData)
-        .eq('id', updatedDefect.id)
-        .select('*')
-        .single();
 
-      if (error) {
-        console.error('Update error:', error);
-        throw error;
-      }
-      result = data;
-    }
+      const isNewDefect = updatedDefect.id?.startsWith('temp-');
+      
+      const defectData = {
+        vessel_id: updatedDefect.vessel_id,
+        vessel_name: vesselNames[updatedDefect.vessel_id],
+        "Status (Vessel)": updatedDefect['Status (Vessel)'],
+        Equipments: updatedDefect.Equipments,
+        Description: updatedDefect.Description,
+        "Action Planned": updatedDefect['Action Planned'],
+        Criticality: updatedDefect.Criticality,
+        "Date Reported": updatedDefect['Date Reported'],
+        "Date Completed": updatedDefect['Date Completed'] || null,
+        Comments: updatedDefect.Comments || ''
+      };
 
-    // Update local state with the result from Supabase
-    setData(prevData => {
+      let result;
       if (isNewDefect) {
-        return [...prevData, result];
+        // For new defects
+        const { data: insertedData, error: insertError } = await supabase
+          .from('defects register')
+          .insert([defectData])
+          .select('*')
+          .single();
+
+        if (insertError) throw insertError;
+        result = insertedData;
+        
+        // Add new defect at the beginning of the array
+        setData(prevData => [result, ...prevData]);
+      } else {
+        // For existing defects
+        const { data: updatedData, error: updateError } = await supabase
+          .from('defects register')
+          .update(defectData)
+          .eq('id', updatedDefect.id)
+          .select('*')
+          .single();
+
+        if (updateError) throw updateError;
+        result = updatedData;
+        
+        // Update and maintain sort order
+        setData(prevData => {
+          const updatedData = prevData.map(d => d.id === result.id ? result : d);
+          return [...updatedData].sort((a, b) => 
+            new Date(b['Date Reported']) - new Date(a['Date Reported'])
+          );
+        });
       }
-      return prevData.map(d => d.id === result.id ? result : d);
-    });
 
-    toast({
-      title: isNewDefect ? "Defect Added" : "Defect Updated",
-      description: "Successfully saved the defect",
-    });
+      toast({
+        title: isNewDefect ? "Defect Added" : "Defect Updated",
+        description: "Successfully saved the defect",
+      });
 
-    setIsDefectDialogOpen(false);
-    setCurrentDefect(null);
+      setIsDefectDialogOpen(false);
+      setCurrentDefect(null);
 
-  } catch (error) {
-    console.error("Error saving defect:", error);
-    toast({
-      title: "Error",
-      description: error.message || "Failed to save defect",
-      variant: "destructive",
-    });
-  }
-};
+    } catch (error) {
+      console.error("Error saving defect:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save defect",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
