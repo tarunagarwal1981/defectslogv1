@@ -20,7 +20,7 @@ const DefectDialog = ({
   const [files, setFiles] = useState([]);
   const [saving, setSaving] = useState(false);
 
-  const validateDefect = (defect) => {
+  const validateDefect = (defectData) => {
     const required = [
       'vessel_id',
       'Equipments',
@@ -30,8 +30,8 @@ const DefectDialog = ({
       'Date Reported'
     ];
     
-    const missing = required.filter(field => !defect[field]);
-
+    const missing = required.filter(field => !defectData[field]);
+    
     if (missing.length > 0) {
       toast({
         title: "Required Fields Missing",
@@ -52,26 +52,18 @@ const DefectDialog = ({
   const handleSave = async () => {
     try {
       setSaving(true);
+      console.log('Attempting to save defect:', defect); // Debug log
 
       if (!validateDefect(defect)) {
         setSaving(false);
         return;
       }
 
-      // Prepare defect data
-      const defectData = {
-        ...defect,
-        'Status (Vessel)': defect['Status (Vessel)'] || 'OPEN',
-        'Date Reported': defect['Date Reported'] || new Date().toISOString().split('T')[0],
-        vessel_name: vessels[defect.vessel_id]
-      };
-
-      console.log('Saving defect data:', defectData);
-      await onSave(defectData);
+      await onSave(defect);
       setFiles([]);
       
     } catch (error) {
-      console.error('Error saving defect:', error);
+      console.error('Error in DefectDialog save:', error);
       toast({
         title: "Error",
         description: "Failed to save defect. Please try again.",
@@ -83,24 +75,35 @@ const DefectDialog = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={onClose}
+      aria-label={isNew ? "Add New Defect" : "Edit Defect"}
+      aria-describedby="defect-form-description"
+    >
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-[#0B1623]">
         <DialogHeader>
           <DialogTitle className="text-sm font-medium text-white">
             {isNew ? 'Add New Defect' : 'Edit Defect'}
           </DialogTitle>
+          <p id="defect-form-description" className="text-xs text-white/60">
+            {isNew ? 'Add a new defect record' : 'Edit existing defect details'}
+          </p>
         </DialogHeader>
+        
         <div className="grid gap-3 py-3">
           {/* Vessel Selection */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-white/80">
+            <label htmlFor="vessel" className="text-xs font-medium text-white/80">
               Vessel <span className="text-red-400">*</span>
             </label>
             <select
+              id="vessel"
               className="flex h-8 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
               value={defect?.vessel_id || ''}
               onChange={(e) => onChange('vessel_id', e.target.value)}
               required
+              aria-required="true"
             >
               <option value="">Select Vessel</option>
               {Object.entries(vessels).map(([id, name]) => (
@@ -109,16 +112,18 @@ const DefectDialog = ({
             </select>
           </div>
 
-          {/* Equipment Dropdown */}
+          {/* Equipment */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-white/80">
+            <label htmlFor="equipment" className="text-xs font-medium text-white/80">
               Equipment <span className="text-red-400">*</span>
             </label>
             <select
+              id="equipment"
               className="flex h-8 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
               value={defect?.Equipments || ''}
               onChange={(e) => onChange('Equipments', e.target.value)}
               required
+              aria-required="true"
             >
               <option value="">Select Equipment</option>
               <option value="Air System and Air Compressor">Air System and Air Compressor</option>
@@ -144,42 +149,48 @@ const DefectDialog = ({
 
           {/* Description */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-white/80">
+            <label htmlFor="description" className="text-xs font-medium text-white/80">
               Description <span className="text-red-400">*</span>
             </label>
             <textarea
+              id="description"
               className="flex h-16 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
               value={defect?.Description || ''}
               onChange={(e) => onChange('Description', e.target.value)}
               placeholder="Enter defect description"
               required
+              aria-required="true"
             />
           </div>
 
           {/* Action Planned */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-white/80">
+            <label htmlFor="action" className="text-xs font-medium text-white/80">
               Action Planned <span className="text-red-400">*</span>
             </label>
             <textarea
+              id="action"
               className="flex h-16 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
               value={defect?.['Action Planned'] || ''}
               onChange={(e) => onChange('Action Planned', e.target.value)}
               placeholder="Enter planned action"
               required
+              aria-required="true"
             />
           </div>
 
           {/* Status */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-white/80">
+            <label htmlFor="status" className="text-xs font-medium text-white/80">
               Status <span className="text-red-400">*</span>
             </label>
             <select
+              id="status"
               className="flex h-8 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
               value={defect?.['Status (Vessel)'] || ''}
               onChange={(e) => onChange('Status (Vessel)', e.target.value)}
               required
+              aria-required="true"
             >
               <option value="">Select Status</option>
               <option value="OPEN">Open</option>
@@ -190,14 +201,16 @@ const DefectDialog = ({
 
           {/* Criticality */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-white/80">
+            <label htmlFor="criticality" className="text-xs font-medium text-white/80">
               Criticality <span className="text-red-400">*</span>
             </label>
             <select
+              id="criticality"
               className="flex h-8 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
               value={defect?.Criticality || ''}
               onChange={(e) => onChange('Criticality', e.target.value)}
               required
+              aria-required="true"
             >
               <option value="">Select Criticality</option>
               <option value="High">High</option>
@@ -209,20 +222,25 @@ const DefectDialog = ({
           {/* Dates */}
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
-              <label className="text-xs font-medium text-white/80">
+              <label htmlFor="dateReported" className="text-xs font-medium text-white/80">
                 Date Reported <span className="text-red-400">*</span>
               </label>
               <input
+                id="dateReported"
                 type="date"
                 className="flex h-8 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
                 value={defect?.['Date Reported'] || ''}
                 onChange={(e) => onChange('Date Reported', e.target.value)}
                 required
+                aria-required="true"
               />
             </div>
             <div className="grid gap-1.5">
-              <label className="text-xs font-medium text-white/80">Date Completed</label>
+              <label htmlFor="dateCompleted" className="text-xs font-medium text-white/80">
+                Date Completed
+              </label>
               <input
+                id="dateCompleted"
                 type="date"
                 className="flex h-8 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
                 value={defect?.['Date Completed'] || ''}
@@ -233,21 +251,25 @@ const DefectDialog = ({
 
           {/* Associated Files */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-white/80">Associated Files</label>
+            <label htmlFor="files" className="text-xs font-medium text-white/80">
+              Associated Files
+            </label>
             <div className="flex items-center gap-2">
               <label className="flex items-center gap-2 px-3 py-1.5 rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] cursor-pointer hover:border-[#3BADE5]/40">
                 <Upload className="h-4 w-4 text-white" />
                 <span className="text-xs text-white">Upload Files</span>
                 <input
+                  id="files"
                   type="file"
                   multiple
                   className="hidden"
                   onChange={handleFileChange}
                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  aria-label="Upload files"
                 />
               </label>
               {files.length > 0 && (
-                <span className="text-xs text-white/60">
+                <span className="text-xs text-white/60" role="status">
                   {files.length} file(s) selected
                 </span>
               )}
@@ -256,8 +278,11 @@ const DefectDialog = ({
 
           {/* Comments */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-white/80">Comments</label>
+            <label htmlFor="comments" className="text-xs font-medium text-white/80">
+              Comments
+            </label>
             <textarea
+              id="comments"
               className="flex h-16 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
               value={defect?.Comments || ''}
               onChange={(e) => onChange('Comments', e.target.value)}
@@ -271,6 +296,7 @@ const DefectDialog = ({
             onClick={onClose}
             disabled={saving}
             className="h-7 px-3 text-xs font-medium rounded-[4px] border border-[#3BADE5]/20 hover:border-[#3BADE5]/40 text-white disabled:opacity-50"
+            aria-label="Cancel"
           >
             Cancel
           </button>
@@ -278,6 +304,7 @@ const DefectDialog = ({
             onClick={handleSave}
             disabled={saving}
             className="h-7 px-3 text-xs font-medium rounded-[4px] bg-[#3BADE5] hover:bg-[#3BADE5]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label={isNew ? "Add new defect" : "Save changes"}
           >
             {saving ? 'Saving...' : (isNew ? 'Add Defect' : 'Save Changes')}
           </button>
