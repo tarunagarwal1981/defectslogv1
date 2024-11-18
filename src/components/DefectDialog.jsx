@@ -6,6 +6,7 @@ import {
   DialogTitle,
 } from './ui/dialog';
 import { Upload } from 'lucide-react';
+import { toast } from './ui/use-toast';
 
 const DefectDialog = ({ 
   isOpen, 
@@ -17,6 +18,30 @@ const DefectDialog = ({
   isNew 
 }) => {
   const [files, setFiles] = useState([]);
+  const [saving, setSaving] = useState(false);
+
+  const validateDefect = (defect) => {
+    const required = [
+      'vessel_id',
+      'Equipments',
+      'Description',
+      'Status (Vessel)',
+      'Criticality',
+      'Date Reported'
+    ];
+    
+    const missing = required.filter(field => !defect[field]);
+
+    if (missing.length > 0) {
+      toast({
+        title: "Required Fields Missing",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
@@ -24,12 +49,37 @@ const DefectDialog = ({
     onChange('associated_files', selectedFiles);
   };
 
-  const handleSave = () => {
-    const formData = new FormData();
-    files.forEach(file => {
-      formData.append('files', file);
-    });
-    onSave({ ...defect, files: formData });
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+
+      if (!validateDefect(defect)) {
+        setSaving(false);
+        return;
+      }
+
+      // Prepare defect data
+      const defectData = {
+        ...defect,
+        'Status (Vessel)': defect['Status (Vessel)'] || 'OPEN',
+        'Date Reported': defect['Date Reported'] || new Date().toISOString().split('T')[0],
+        vessel_name: vessels[defect.vessel_id]
+      };
+
+      console.log('Saving defect data:', defectData);
+      await onSave(defectData);
+      setFiles([]);
+      
+    } catch (error) {
+      console.error('Error saving defect:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save defect. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -43,7 +93,9 @@ const DefectDialog = ({
         <div className="grid gap-3 py-3">
           {/* Vessel Selection */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-white/80">Vessel</label>
+            <label className="text-xs font-medium text-white/80">
+              Vessel <span className="text-red-400">*</span>
+            </label>
             <select
               className="flex h-8 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
               value={defect?.vessel_id || ''}
@@ -59,7 +111,9 @@ const DefectDialog = ({
 
           {/* Equipment Dropdown */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-white/80">Equipment</label>
+            <label className="text-xs font-medium text-white/80">
+              Equipment <span className="text-red-400">*</span>
+            </label>
             <select
               className="flex h-8 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
               value={defect?.Equipments || ''}
@@ -90,7 +144,9 @@ const DefectDialog = ({
 
           {/* Description */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-white/80">Description</label>
+            <label className="text-xs font-medium text-white/80">
+              Description <span className="text-red-400">*</span>
+            </label>
             <textarea
               className="flex h-16 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
               value={defect?.Description || ''}
@@ -102,7 +158,9 @@ const DefectDialog = ({
 
           {/* Action Planned */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-white/80">Action Planned</label>
+            <label className="text-xs font-medium text-white/80">
+              Action Planned <span className="text-red-400">*</span>
+            </label>
             <textarea
               className="flex h-16 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
               value={defect?.['Action Planned'] || ''}
@@ -114,7 +172,9 @@ const DefectDialog = ({
 
           {/* Status */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-white/80">Status</label>
+            <label className="text-xs font-medium text-white/80">
+              Status <span className="text-red-400">*</span>
+            </label>
             <select
               className="flex h-8 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
               value={defect?.['Status (Vessel)'] || ''}
@@ -130,7 +190,9 @@ const DefectDialog = ({
 
           {/* Criticality */}
           <div className="grid gap-1.5">
-            <label className="text-xs font-medium text-white/80">Criticality</label>
+            <label className="text-xs font-medium text-white/80">
+              Criticality <span className="text-red-400">*</span>
+            </label>
             <select
               className="flex h-8 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
               value={defect?.Criticality || ''}
@@ -147,7 +209,9 @@ const DefectDialog = ({
           {/* Dates */}
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
-              <label className="text-xs font-medium text-white/80">Date Reported</label>
+              <label className="text-xs font-medium text-white/80">
+                Date Reported <span className="text-red-400">*</span>
+              </label>
               <input
                 type="date"
                 className="flex h-8 w-full rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] px-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#3BADE5] hover:border-[#3BADE5]/40"
@@ -172,7 +236,7 @@ const DefectDialog = ({
             <label className="text-xs font-medium text-white/80">Associated Files</label>
             <div className="flex items-center gap-2">
               <label className="flex items-center gap-2 px-3 py-1.5 rounded-[4px] border border-[#3BADE5]/20 bg-[#132337] cursor-pointer hover:border-[#3BADE5]/40">
-                <Upload className="h-4 w-4" />
+                <Upload className="h-4 w-4 text-white" />
                 <span className="text-xs text-white">Upload Files</span>
                 <input
                   type="file"
@@ -205,15 +269,17 @@ const DefectDialog = ({
         <div className="flex justify-end gap-2 pt-2">
           <button
             onClick={onClose}
-            className="h-7 px-3 text-xs font-medium rounded-[4px] border border-[#3BADE5]/20 hover:border-[#3BADE5]/40 text-white"
+            disabled={saving}
+            className="h-7 px-3 text-xs font-medium rounded-[4px] border border-[#3BADE5]/20 hover:border-[#3BADE5]/40 text-white disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="h-7 px-3 text-xs font-medium rounded-[4px] bg-[#3BADE5] hover:bg-[#3BADE5]/90 text-white"
+            disabled={saving}
+            className="h-7 px-3 text-xs font-medium rounded-[4px] bg-[#3BADE5] hover:bg-[#3BADE5]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isNew ? 'Add Defect' : 'Save Changes'}
+            {saving ? 'Saving...' : (isNew ? 'Add Defect' : 'Save Changes')}
           </button>
         </div>
       </DialogContent>
