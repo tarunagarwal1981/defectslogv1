@@ -31,6 +31,9 @@ const getUserVessels = async (userId) => {
   }
 };
 
+const MAX_RETRY_ATTEMPTS = 5;
+const RETRY_DELAY = 500; // milliseconds
+
 function App() {
   const { toast } = useToast();
   
@@ -39,7 +42,7 @@ function App() {
   const [data, setData] = useState([]);
   const [assignedVessels, setAssignedVessels] = useState([]);
   const [vesselNames, setVesselNames] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isPdfGenerating, setIsPdfGenerating] = useState(false);
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
   
@@ -53,6 +56,11 @@ function App() {
   const [dataFetched, setDataFetched] = useState(false);
 
   const fetchUserData = useCallback(async (userId) => {
+    if (!userId) {
+      console.warn('No user ID provided to fetchUserData');
+      return;
+    }
+
     try {
       console.log('Fetching data for user:', userId);
       setLoading(true);
@@ -92,11 +100,11 @@ function App() {
       setDataFetched(true);
       
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error('Error fetching data:', error);
       toast({
-        title: "Error",
-        description: "Failed to load data. Please refresh the page.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load data. Please refresh the page.',
+        variant: 'destructive',
       });
       setDataFetched(true);
     } finally {
@@ -104,65 +112,62 @@ function App() {
     }
   }, [toast]);
 
-  // Session initialization
-  useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        setIsInitializing(true);
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
-        console.log('Initial session check:', initialSession?.user?.id);
-        setSession(initialSession);
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-      } finally {
-        setIsInitializing(false);
-      }
-    };
+  const initializeAuth = useCallback(async () => {
+    try {
+      setIsInitializing(true);
+      let attempts = 0;
+      let sessionData = null;
 
+      while (attempts < MAX_RETRY_ATTEMPTS) {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        console.log(`Auth attempt ${attempts + 1}:`, currentSession?.user?.id);
+        
+        if (currentSession?.user?.id) {
+          sessionData = currentSession;
+          break;
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+        attempts++;
+      }
+
+      if (sessionData?.user?.id) {
+        console.log('Session initialized successfully:', sessionData.user.id);
+        setSession(sessionData);
+        await fetchUserData(sessionData.user.id);
+      } else {
+        console.log('No valid session found after retries');
+        setSession(null);
+      }
+    } catch (error) {
+      console.error('Auth initialization error:', error);
+    } finally {
+      setIsInitializing(false);
+    }
+  }, [fetchUserData]);
+
+  useEffect(() => {
     initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       console.log('Auth state changed:', event, newSession?.user?.id);
-      setSession(newSession);
+      
+      if (event === 'SIGNED_IN' && newSession?.user?.id) {
+        setSession(newSession);
+        await fetchUserData(newSession.user.id);
+      } else if (event === 'SIGNED_OUT') {
+        setSession(null);
+        setData([]);
+        setAssignedVessels([]);
+        setVesselNames({});
+        setDataFetched(false);
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [initializeAuth, fetchUserData]);
 
-  // Data fetching based on session
-  useEffect(() => {
-    if (session?.user?.id) {
-      console.log('Session initialized. Fetching data...');
-      fetchUserData(session.user.id);
-    } else {
-      console.log('No session, clearing data...');
-      setData([]);
-      setAssignedVessels([]);
-      setVesselNames({});
-      setDataFetched(true);
-    }
-  }, [session?.user?.id, fetchUserData]);
-
-  const handleLogout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      setSession(null);
-      setData([]);
-      setAssignedVessels([]);
-      setVesselNames({});
-      setDataFetched(false);
-    } catch (error) {
-      console.error("Error logging out:", error);
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Rest of your code remains the same...
+  // Your existing handlers remain the same...
   const filteredData = React.useMemo(() => {
     return data.filter(defect => {
       const defectDate = new Date(defect['Date Reported']);
@@ -181,7 +186,6 @@ function App() {
     });
   }, [data, currentVessel, statusFilter, criticalityFilter, searchTerm, dateRange]);
 
-  // Your existing handlers...
   const handleGeneratePdf = useCallback(async () => {
     setIsPdfGenerating(true);
     try {
@@ -330,6 +334,25 @@ function App() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setSession(null);
+      setData([]);
+      setAssignedVessels([]);
+      setVesselNames({});
+      setDataFetched(false);
+    } catch (error) {
+      console.error("Error logging out:", error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
