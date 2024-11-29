@@ -6,6 +6,7 @@ const Header = ({ user, vessels, currentVessel, onVesselChange, onLogout, dateRa
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
+  // Previous vessel handling code remains the same...
   const selectedVessels = Array.isArray(currentVessel) 
     ? currentVessel 
     : currentVessel ? [currentVessel] : [];
@@ -15,11 +16,9 @@ const Header = ({ user, vessels, currentVessel, onVesselChange, onLogout, dateRa
       onVesselChange([]);
       return;
     }
-
     const updatedSelection = selectedVessels.includes(vesselId)
       ? selectedVessels.filter(id => id !== vesselId)
       : [...selectedVessels, vesselId];
-    
     onVesselChange(updatedSelection);
   };
 
@@ -36,7 +35,6 @@ const Header = ({ user, vessels, currentVessel, onVesselChange, onLogout, dateRa
     const to = new Date();
     const from = new Date();
     from.setDate(from.getDate() - days);
-    
     onDateRangeChange({
       from: from.toISOString().split('T')[0],
       to: to.toISOString().split('T')[0]
@@ -52,47 +50,47 @@ const Header = ({ user, vessels, currentVessel, onVesselChange, onLogout, dateRa
 
   return (
     <header className="fixed top-0 left-0 right-0 z-10 bg-background border-b">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-bold">Defects Manager</h1>
+      <div className="container mx-auto px-4 h-12 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <h1 className="text-lg font-bold">Defects Manager</h1>
           
           {/* Vessel Selector */}
           {vessels.length > 0 && (
             <div className="relative">
               <button
-                className="flex items-center space-x-2 bg-background border rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 hover:bg-accent/50"
+                className="flex items-center space-x-2 bg-background border rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 hover:bg-accent/50"
                 onClick={() => setIsVesselDropdownOpen(!isVesselDropdownOpen)}
               >
                 <span>{getVesselDisplayText()}</span>
-                <ChevronDown className="h-4 w-4 opacity-50" />
+                <ChevronDown className="h-3 w-3 opacity-50" />
               </button>
               
               {isVesselDropdownOpen && (
-                <div className="absolute top-full left-0 mt-1 w-56 bg-background border rounded-md shadow-lg p-2 z-20">
-                  <div className="text-xs text-muted-foreground px-2 py-1">Select Vessels</div>
+                <div className="absolute top-full left-0 mt-1 w-48 bg-background border rounded-md shadow-lg p-1.5 z-20">
+                  <div className="text-xs text-muted-foreground px-2 py-0.5">Select Vessels</div>
                   <div className="h-px bg-border my-1" />
-                  <div className="max-h-[300px] overflow-y-auto">
-                    <label className="flex items-center px-2 py-1.5 hover:bg-accent/50 rounded-sm cursor-pointer">
+                  <div className="max-h-[240px] overflow-y-auto">
+                    <label className="flex items-center px-2 py-1 hover:bg-accent/50 rounded-sm cursor-pointer">
                       <input
                         type="checkbox"
-                        className="mr-2 h-4 w-4"
+                        className="mr-2 h-3 w-3"
                         checked={selectedVessels.length === 0}
                         onChange={() => handleVesselToggle('')}
                       />
-                      All Vessels
+                      <span className="text-xs">All Vessels</span>
                     </label>
                     {vessels.map(([id, name]) => (
                       <label
                         key={id}
-                        className="flex items-center px-2 py-1.5 hover:bg-accent/50 rounded-sm cursor-pointer"
+                        className="flex items-center px-2 py-1 hover:bg-accent/50 rounded-sm cursor-pointer"
                       >
                         <input
                           type="checkbox"
-                          className="mr-2 h-4 w-4"
+                          className="mr-2 h-3 w-3"
                           checked={selectedVessels.includes(id)}
                           onChange={() => handleVesselToggle(id)}
                         />
-                        {name}
+                        <span className="text-xs">{name}</span>
                       </label>
                     ))}
                   </div>
@@ -104,31 +102,31 @@ const Header = ({ user, vessels, currentVessel, onVesselChange, onLogout, dateRa
           {/* Date Range Selector */}
           <div className="relative">
             <button
-              className="flex items-center space-x-2 bg-background border rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 hover:bg-accent/50"
+              className="flex items-center space-x-2 bg-background border rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 hover:bg-accent/50"
               onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
             >
-              <Calendar className="h-4 w-4" />
+              <Calendar className="h-3 w-3" />
               <span>{getDateRangeDisplay()}</span>
             </button>
 
             {isDatePickerOpen && (
-              <div className="absolute top-full left-0 mt-1 bg-background border rounded-md shadow-lg p-4 z-20">
-                <div className="grid gap-4">
-                  <div className="flex gap-4">
+              <div className="absolute top-full left-0 mt-1 bg-background border rounded-md shadow-lg p-2 z-20">
+                <div className="grid gap-2">
+                  <div className="flex gap-2">
                     <div className="grid gap-1">
-                      <label className="text-xs">From</label>
+                      <label className="text-[10px] text-muted-foreground">From</label>
                       <input
                         type="date"
-                        className="px-2 py-1 border rounded-md bg-background"
+                        className="w-32 px-1.5 py-0.5 text-xs border rounded-md bg-background"
                         value={dateRange.from || ''}
                         onChange={(e) => onDateRangeChange({ ...dateRange, from: e.target.value })}
                       />
                     </div>
                     <div className="grid gap-1">
-                      <label className="text-xs">To</label>
+                      <label className="text-[10px] text-muted-foreground">To</label>
                       <input
                         type="date"
-                        className="px-2 py-1 border rounded-md bg-background"
+                        className="w-32 px-1.5 py-0.5 text-xs border rounded-md bg-background"
                         value={dateRange.to || ''}
                         onChange={(e) => onDateRangeChange({ ...dateRange, to: e.target.value })}
                         min={dateRange.from}
@@ -136,50 +134,44 @@ const Header = ({ user, vessels, currentVessel, onVesselChange, onLogout, dateRa
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => handlePresetDateRange(7)}
-                      className="px-3 py-1.5 text-sm border rounded-md hover:bg-accent/50"
-                    >
-                      Last 7 days
-                    </button>
-                    <button
-                      onClick={() => handlePresetDateRange(30)}
-                      className="px-3 py-1.5 text-sm border rounded-md hover:bg-accent/50"
-                    >
-                      Last 30 days
-                    </button>
-                    <button
-                      onClick={() => {
-                        const now = new Date();
-                        const from = new Date(now.getFullYear(), now.getMonth(), 1);
-                        onDateRangeChange({
-                          from: from.toISOString().split('T')[0],
-                          to: now.toISOString().split('T')[0]
-                        });
-                      }}
-                      className="px-3 py-1.5 text-sm border rounded-md hover:bg-accent/50"
-                    >
-                      This month
-                    </button>
-                    <button
-                      onClick={() => {
-                        const now = new Date();
-                        const from = new Date(now.getFullYear(), 0, 1);
-                        onDateRangeChange({
-                          from: from.toISOString().split('T')[0],
-                          to: now.toISOString().split('T')[0]
-                        });
-                      }}
-                      className="px-3 py-1.5 text-sm border rounded-md hover:bg-accent/50"
-                    >
-                      This year
-                    </button>
+                  <div className="grid grid-cols-2 gap-1">
+                    {[
+                      { label: 'Last 7 days', days: 7 },
+                      { label: 'Last 30 days', days: 30 },
+                      { label: 'This month', days: null },
+                      { label: 'This year', days: null }
+                    ].map((preset, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          if (preset.days) {
+                            handlePresetDateRange(preset.days);
+                          } else if (preset.label === 'This month') {
+                            const now = new Date();
+                            const from = new Date(now.getFullYear(), now.getMonth(), 1);
+                            onDateRangeChange({
+                              from: from.toISOString().split('T')[0],
+                              to: now.toISOString().split('T')[0]
+                            });
+                          } else {
+                            const now = new Date();
+                            const from = new Date(now.getFullYear(), 0, 1);
+                            onDateRangeChange({
+                              from: from.toISOString().split('T')[0],
+                              to: now.toISOString().split('T')[0]
+                            });
+                          }
+                        }}
+                        className="px-2 py-1 text-xs border rounded-md hover:bg-accent/50"
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
                   </div>
 
                   <button
                     onClick={() => onDateRangeChange({ from: undefined, to: undefined })}
-                    className="px-3 py-1.5 text-sm border rounded-md hover:bg-accent/50 text-red-500"
+                    className="px-2 py-1 text-xs border rounded-md hover:bg-accent/50 text-red-500"
                   >
                     Clear dates
                   </button>
@@ -193,20 +185,20 @@ const Header = ({ user, vessels, currentVessel, onVesselChange, onLogout, dateRa
         {user && (
           <div className="relative">
             <button
-              className="flex items-center space-x-2 hover:bg-accent rounded-full p-2"
+              className="flex items-center space-x-2 hover:bg-accent rounded-full p-1.5"
               onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
             >
-              <User className="h-5 w-5" />
-              <span className="text-sm font-medium">{user.email}</span>
+              <User className="h-4 w-4" />
+              <span className="text-xs font-medium">{user.email}</span>
             </button>
 
             {isUserDropdownOpen && (
               <div className="absolute top-full right-0 mt-1 bg-background border rounded-md shadow-lg z-20">
                 <button
                   onClick={onLogout}
-                  className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-red-500 hover:bg-accent/50"
+                  className="flex items-center space-x-2 w-full px-3 py-1.5 text-xs text-red-500 hover:bg-accent/50"
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className="h-3 w-3" />
                   <span>Logout</span>
                 </button>
               </div>
