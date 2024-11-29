@@ -49,14 +49,17 @@ function App() {
   
   const [isDefectDialogOpen, setIsDefectDialogOpen] = useState(false);
   const [currentDefect, setCurrentDefect] = useState(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const fetchUserData = useCallback(async () => {
     if (!session?.user?.id) return;
 
     try {
       setLoading(true);
+      console.log('Fetching user data for:', session.user.id);
       
       const userVessels = await getUserVessels(session.user.id);
+      console.log('Fetched vessels:', userVessels?.length);
       
       const vesselIds = userVessels.map(v => v.vessel_id);
       const vesselsMap = userVessels.reduce((acc, v) => {
@@ -74,6 +77,7 @@ function App() {
         .order('Date Reported', { ascending: false });
 
       if (defectsError) throw defectsError;
+      console.log('Fetched defects:', defects?.length);
 
       setAssignedVessels(vesselIds);
       setVesselNames(vesselsMap);
@@ -91,38 +95,45 @@ function App() {
     }
   }, [session?.user?.id, toast]);
 
+  // Initialize auth and session
   useEffect(() => {
-    // Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', session?.user?.id);
-      setSession(session);
-      if (session?.user) {
-        fetchUserData();
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Initial auth check:', session?.user?.id);
+        setSession(session);
+        
+        if (session?.user) {
+          await fetchUserData();
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+      } finally {
+        setIsInitialized(true);
       }
-    });
+    };
 
-    // Auth state change listener
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('Auth state changed:', session?.user?.id);
+    initializeAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
       setSession(session);
+      
       if (session?.user) {
         await fetchUserData();
+      } else {
+        setData([]);
+        setAssignedVessels([]);
+        setVesselNames({});
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [fetchUserData]);
 
-  useEffect(() => {
-    if (!session?.user) {
-      setData([]);
-      setAssignedVessels([]);
-      setVesselNames({});
-    }
-  }, [session?.user]);
-
+  // Rest of your code remains exactly the same
   const filteredData = React.useMemo(() => {
     return data.filter(defect => {
       const defectDate = new Date(defect['Date Reported']);
@@ -141,6 +152,7 @@ function App() {
     });
   }, [data, currentVessel, statusFilter, criticalityFilter, searchTerm, dateRange]);
 
+  // All your handlers remain exactly the same
   const handleGeneratePdf = useCallback(async () => {
     setIsPdfGenerating(true);
     try {
@@ -313,6 +325,14 @@ function App() {
     }
     return `${currentVessel.length} Vessels Selected`;
   };
+
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <ToastProvider>
