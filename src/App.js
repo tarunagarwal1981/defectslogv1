@@ -10,7 +10,6 @@ import DefectDialog from './components/DefectDialog';
 import ChatBot from './components/ChatBot/ChatBot';
 import { supabase } from './supabaseClient';
 
-// Utility function for fetching user's vessels
 const getUserVessels = async (userId) => {
   try {
     const { data, error } = await supabase
@@ -35,27 +34,21 @@ const getUserVessels = async (userId) => {
 function App() {
   const { toast } = useToast();
   
-  // User and auth states
   const [session, setSession] = useState(null);
-  
-  // Data states
   const [data, setData] = useState([]);
   const [assignedVessels, setAssignedVessels] = useState([]);
   const [vesselNames, setVesselNames] = useState({});
   const [loading, setLoading] = useState(true);
   const [isPdfGenerating, setIsPdfGenerating] = useState(false);
   
-  // Filter states - updated currentVessel to be an array
   const [currentVessel, setCurrentVessel] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [criticalityFilter, setCriticalityFilter] = useState('');
   
-  // Dialog states
   const [isDefectDialogOpen, setIsDefectDialogOpen] = useState(false);
   const [currentDefect, setCurrentDefect] = useState(null);
 
-  // Initialize auth listener
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -70,17 +63,14 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch user data
   const fetchUserData = useCallback(async () => {
     if (!session?.user?.id) return;
 
     try {
       setLoading(true);
       
-      // Get user's vessels with names
       const userVessels = await getUserVessels(session.user.id);
       
-      // Extract vessel IDs and names
       const vesselIds = userVessels.map(v => v.vessel_id);
       const vesselsMap = userVessels.reduce((acc, v) => {
         if (v.vessels) {
@@ -89,10 +79,10 @@ function App() {
         return acc;
       }, {});
 
-      // Fetch defects for assigned vessels, sorted by date (newest first)
       const { data: defects, error: defectsError } = await supabase
         .from('defects register')
         .select('*')
+        .eq('is_deleted', false)
         .in('vessel_id', vesselIds)
         .order('Date Reported', { ascending: false });
 
@@ -124,7 +114,6 @@ function App() {
     }
   }, [session?.user, fetchUserData]);
 
-  // Updated filteredData to handle array of selected vessels
   const filteredData = React.useMemo(() => {
     return data.filter(defect => {
       const matchesVessel = currentVessel.length === 0 || currentVessel.includes(defect.vessel_id);
@@ -139,12 +128,10 @@ function App() {
     });
   }, [data, currentVessel, statusFilter, criticalityFilter, searchTerm]);
 
-  // PDF Generation handler
   const handleGeneratePdf = useCallback(async () => {
     setIsPdfGenerating(true);
     try {
-      // PDF generation will be handled in ChatBot component
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
     } catch (error) {
       toast({
         title: "Error",
@@ -156,7 +143,6 @@ function App() {
     }
   }, [toast]);
 
-  // Handlers
   const handleAddDefect = () => {
     if (assignedVessels.length === 0) {
       toast({
@@ -205,7 +191,6 @@ function App() {
 
       let result;
       if (isNewDefect) {
-        // For new defects
         const { data: insertedData, error: insertError } = await supabase
           .from('defects register')
           .insert([defectData])
@@ -215,10 +200,8 @@ function App() {
         if (insertError) throw insertError;
         result = insertedData;
         
-        // Add new defect at the beginning of the array
         setData(prevData => [result, ...prevData]);
       } else {
-        // For existing defects
         const { data: updatedData, error: updateError } = await supabase
           .from('defects register')
           .update(defectData)
@@ -229,7 +212,6 @@ function App() {
         if (updateError) throw updateError;
         result = updatedData;
         
-        // Update and maintain sort order
         setData(prevData => {
           const updatedData = prevData.map(d => d.id === result.id ? result : d);
           return [...updatedData].sort((a, b) => 
@@ -256,6 +238,47 @@ function App() {
     }
   };
 
+  const handleDeleteDefect = async (defectId) => {
+    try {
+      if (!session?.user?.id) {
+        throw new Error("User not authenticated");
+      }
+
+      const confirmed = window.confirm("Are you sure you want to delete this defect?");
+      if (!confirmed) return;
+
+      setLoading(true);
+
+      const { error } = await supabase
+        .from('defects register')
+        .update({
+          is_deleted: true,
+          deleted_by: session.user.id,
+          deleted_at: new Date().toISOString()
+        })
+        .eq('id', defectId);
+
+      if (error) throw error;
+
+      setData(prevData => prevData.filter(d => d.id !== defectId));
+
+      toast({
+        title: "Defect Deleted",
+        description: "Successfully deleted the defect record",
+      });
+
+    } catch (error) {
+      console.error("Error deleting defect:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete defect",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -270,35 +293,6 @@ function App() {
     }
   };
 
-  const handleDeleteDefect = async (defectId) => {
-  try {
-    const { error } = await supabase
-      .from('defects register')
-      .delete()
-      .eq('id', defectId);
-
-    if (error) throw error;
-
-    // Update local state by removing the deleted defect
-    setData(prevData => prevData.filter(d => d.id !== defectId));
-
-    toast({
-      title: "Defect Deleted",
-      description: "Successfully deleted the defect record",
-    });
-
-  } catch (error) {
-    console.error("Error deleting defect:", error);
-    toast({
-      title: "Error",
-      description: error.message || "Failed to delete defect",
-      variant: "destructive",
-    });
-  }
-};
-
-  
-  // Get vessel name for ChatBot, now handling multiple selections
   const getSelectedVesselsDisplay = () => {
     if (currentVessel.length === 0) return 'All Vessels';
     if (currentVessel.length === 1) {
