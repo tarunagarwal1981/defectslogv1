@@ -7,16 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from './ui/dropdown-menu';
-import { User, LogOut, ChevronDown, Calendar, X } from 'lucide-react';
-
-const formatDate = (dateStr) => {
-  if (!dateStr) return '';
-  return new Date(dateStr).toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  });
-};
+import { User, LogOut, ChevronDown } from 'lucide-react';
 
 const Header = ({ user, vessels, currentVessel, onVesselChange, onLogout, dateRange, onDateRangeChange }) => {
   const selectedVessels = Array.isArray(currentVessel) 
@@ -95,47 +86,25 @@ const Header = ({ user, vessels, currentVessel, onVesselChange, onLogout, dateRa
             </DropdownMenu>
           )}
 
-          {/* Enhanced Date Range Filter */}
-          <div className="flex items-center bg-[#132337] rounded-md border border-[#3BADE5]/20 px-3">
-            <Calendar className="h-4 w-4 text-[#3BADE5] mr-2" />
-            <div className="flex items-center space-x-2">
-              <div className="relative">
-                <input
-                  type="date"
-                  className="h-8 w-32 px-2 text-xs bg-transparent focus:outline-none text-white"
-                  value={dateRange.from || ''}
-                  onChange={(e) => onDateRangeChange({ ...dateRange, from: e.target.value })}
-                />
-                <div className="absolute top-0 left-0 h-full w-full flex items-center px-2 pointer-events-none">
-                  <span className="text-xs text-white/80">
-                    {dateRange.from ? formatDate(dateRange.from) : 'Start Date'}
-                  </span>
-                </div>
-              </div>
+          {/* Date Range Filter */}
+          <div className="flex items-center space-x-2 ml-4 bg-[#132337] rounded-md px-2 py-1.5 border border-white/10">
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                className="h-7 w-32 px-2 text-xs bg-transparent border-none focus:outline-none text-white placeholder-white/60"
+                value={dateRange.from || ''}
+                onChange={(e) => onDateRangeChange({ ...dateRange, from: e.target.value })}
+                placeholder="dd/MM/yyyy"
+              />
               <span className="text-xs text-white/60">to</span>
-              <div className="relative">
-                <input
-                  type="date"
-                  className="h-8 w-32 px-2 text-xs bg-transparent focus:outline-none text-white"
-                  value={dateRange.to || ''}
-                  onChange={(e) => onDateRangeChange({ ...dateRange, to: e.target.value })}
-                  min={dateRange.from}
-                />
-                <div className="absolute top-0 left-0 h-full w-full flex items-center px-2 pointer-events-none">
-                  <span className="text-xs text-white/80">
-                    {dateRange.to ? formatDate(dateRange.to) : 'End Date'}
-                  </span>
-                </div>
-              </div>
-              {(dateRange.from || dateRange.to) && (
-                <button
-                  onClick={() => onDateRangeChange({ from: '', to: '' })}
-                  className="p-1 hover:bg-white/10 rounded-full transition-colors"
-                  title="Clear dates"
-                >
-                  <X className="h-4 w-4 text-white/60" />
-                </button>
-              )}
+              <input
+                type="date"
+                className="h-7 w-32 px-2 text-xs bg-transparent border-none focus:outline-none text-white placeholder-white/60"
+                value={dateRange.to || ''}
+                onChange={(e) => onDateRangeChange({ ...dateRange, to: e.target.value })}
+                min={dateRange.from}
+                placeholder="dd/MM/yyyy"
+              />
             </div>
           </div>
         </div>
