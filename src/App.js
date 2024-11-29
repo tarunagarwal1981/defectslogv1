@@ -50,19 +50,20 @@ function App() {
   
   const [isDefectDialogOpen, setIsDefectDialogOpen] = useState(false);
   const [currentDefect, setCurrentDefect] = useState(null);
+  const [dataFetched, setDataFetched] = useState(false);
 
-  const fetchUserData = useCallback(async () => {
-    if (!session?.user?.id) return;
-
+  const fetchUserData = useCallback(async (userId) => {
     try {
+      console.log('Fetching data for user:', userId);
       setLoading(true);
       setData([]); // Clear existing data while loading
       
-      const userVessels = await getUserVessels(session.user.id);
+      const userVessels = await getUserVessels(userId);
       console.log('Fetched vessels:', userVessels?.length);
       
       if (!userVessels || userVessels.length === 0) {
         console.warn('No vessels found for user');
+        setDataFetched(true);
         return;
       }
 
@@ -88,6 +89,7 @@ function App() {
       console.log('Fetched defects:', defects?.length);
 
       setData(defects || []);
+      setDataFetched(true);
       
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -96,61 +98,71 @@ function App() {
         description: "Failed to load data. Please refresh the page.",
         variant: "destructive",
       });
+      setDataFetched(true);
     } finally {
       setLoading(false);
     }
-  }, [session?.user?.id, toast]);
+  }, [toast]);
 
+  // Session initialization
   useEffect(() => {
-    let mounted = true;
-
     const initializeAuth = async () => {
       try {
         setIsInitializing(true);
         const { data: { session: initialSession } } = await supabase.auth.getSession();
-        
-        if (!mounted) return;
-
-        if (initialSession?.user?.id) {
-          console.log('Initial session found:', initialSession.user.id);
-          setSession(initialSession);
-          await fetchUserData();
-        } else {
-          setSession(null);
-        }
+        console.log('Initial session check:', initialSession?.user?.id);
+        setSession(initialSession);
       } catch (error) {
         console.error('Auth initialization error:', error);
       } finally {
-        if (mounted) {
-          setIsInitializing(false);
-        }
+        setIsInitializing(false);
       }
     };
 
     initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      if (!mounted) return;
-
       console.log('Auth state changed:', event, newSession?.user?.id);
-      
-      if (event === 'SIGNED_IN' && newSession?.user?.id) {
-        setSession(newSession);
-        await fetchUserData();
-      } else if (event === 'SIGNED_OUT') {
-        setSession(null);
-        setData([]);
-        setAssignedVessels([]);
-        setVesselNames({});
-      }
+      setSession(newSession);
     });
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, [fetchUserData]);
+    return () => subscription.unsubscribe();
+  }, []);
 
+  // Data fetching based on session
+  useEffect(() => {
+    if (session?.user?.id) {
+      console.log('Session initialized. Fetching data...');
+      fetchUserData(session.user.id);
+    } else {
+      console.log('No session, clearing data...');
+      setData([]);
+      setAssignedVessels([]);
+      setVesselNames({});
+      setDataFetched(true);
+    }
+  }, [session?.user?.id, fetchUserData]);
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setSession(null);
+      setData([]);
+      setAssignedVessels([]);
+      setVesselNames({});
+      setDataFetched(false);
+    } catch (error) {
+      console.error("Error logging out:", error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Rest of your code remains the same...
   const filteredData = React.useMemo(() => {
     return data.filter(defect => {
       const defectDate = new Date(defect['Date Reported']);
@@ -169,6 +181,7 @@ function App() {
     });
   }, [data, currentVessel, statusFilter, criticalityFilter, searchTerm, dateRange]);
 
+  // Your existing handlers...
   const handleGeneratePdf = useCallback(async () => {
     setIsPdfGenerating(true);
     try {
@@ -320,24 +333,6 @@ function App() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      setSession(null);
-      setData([]);
-      setAssignedVessels([]);
-      setVesselNames({});
-    } catch (error) {
-      console.error("Error logging out:", error);
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
   const getSelectedVesselsDisplay = () => {
     if (currentVessel.length === 0) return 'All Vessels';
     if (currentVessel.length === 1) {
@@ -380,16 +375,26 @@ function App() {
                 criticality={criticalityFilter}
               />
               
-              <DefectsTable
-                data={filteredData}
-                onAddDefect={handleAddDefect}
-                onEditDefect={(defect) => {
-                  setCurrentDefect(defect);
-                  setIsDefectDialogOpen(true);
-                }}
-                onDeleteDefect={handleDeleteDefect}
-                loading={loading}
-              />
+              {!dataFetched ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-white">Loading data...</div>
+                </div>
+              ) : loading ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-white">Loading defects...</div>
+                </div>
+              ) : (
+                <DefectsTable
+                  data={filteredData}
+                  onAddDefect={handleAddDefect}
+                  onEditDefect={(defect) => {
+                    setCurrentDefect(defect);
+                    setIsDefectDialogOpen(true);
+                  }}
+                  onDeleteDefect={handleDeleteDefect}
+                  loading={loading}
+                />
+              )}
 
               <DefectDialog
                 isOpen={isDefectDialogOpen}
