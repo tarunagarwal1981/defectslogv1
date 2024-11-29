@@ -60,6 +60,14 @@ function App() {
       const userVessels = await getUserVessels(session.user.id);
       console.log('Fetched vessels:', userVessels?.length);
       
+      if (!userVessels || userVessels.length === 0) {
+        console.warn('No vessels found for user');
+        setData([]);
+        setAssignedVessels([]);
+        setVesselNames({});
+        return;
+      }
+      
       const vesselIds = userVessels.map(v => v.vessel_id);
       const vesselsMap = userVessels.reduce((acc, v) => {
         if (v.vessels) {
@@ -75,12 +83,17 @@ function App() {
         .in('vessel_id', vesselIds)
         .order('Date Reported', { ascending: false });
 
-      if (defectsError) throw defectsError;
-      console.log('Fetched defects:', defects?.length);
+      if (defectsError) {
+        console.error('Error fetching defects:', defectsError);
+        throw defectsError;
+      }
 
+      console.log('Setting data:', defects?.length, 'defects');
+
+      // Important: Update all states at once
       setAssignedVessels(vesselIds);
       setVesselNames(vesselsMap);
-      setData(defects || []);
+      setData(Array.isArray(defects) ? defects : []);
       
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -89,34 +102,55 @@ function App() {
         description: error.message,
         variant: "destructive",
       });
+      // Clear data on error
+      setData([]);
+      setAssignedVessels([]);
+      setVesselNames({});
     } finally {
       setLoading(false);
     }
   }, [session?.user?.id, toast]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+    let mounted = true;
+
+    const initializeAuth = async () => {
+      try {
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        if (mounted) {
+          console.log('Setting initial session:', initialSession?.user?.id);
+          setSession(initialSession);
+          if (initialSession?.user) {
+            await fetchUserData();
+          }
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+      }
+    };
+
+    initializeAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      if (!mounted) return;
+      
+      console.log('Auth state changed:', event, newSession?.user?.id);
+      setSession(newSession);
+      
+      if (event === 'SIGNED_IN' && newSession?.user) {
+        await fetchUserData();
+      } else if (event === 'SIGNED_OUT') {
+        setData([]);
+        setAssignedVessels([]);
+        setVesselNames({});
+      }
     });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (session?.user) {
-      fetchUserData();
-    } else {
-      setData([]);
-      setAssignedVessels([]);
-      setVesselNames({});
-    }
-  }, [session?.user, fetchUserData]);
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [fetchUserData]);
 
   const filteredData = React.useMemo(() => {
     return data.filter(defect => {
