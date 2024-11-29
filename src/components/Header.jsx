@@ -1,5 +1,5 @@
+// In Header.jsx
 import React from 'react';
-import { format } from "date-fns";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -8,25 +8,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from './ui/dropdown-menu';
-import { 
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "./ui/popover";
-import { Calendar } from "./ui/calendar";
-import { Button } from "./ui/button";
-import { User, LogOut, ChevronDown, Calendar as CalendarIcon } from 'lucide-react';
-import { cn } from "@/lib/utils";
+import { User, LogOut, ChevronDown } from 'lucide-react';
 
-const Header = ({ 
-  user, 
-  vessels, 
-  currentVessel, 
-  onVesselChange, 
-  onLogout,
-  dateRange,
-  onDateRangeChange 
-}) => {
+const Header = ({ user, vessels, currentVessel, onVesselChange, onLogout, dateRange, onDateRangeChange }) => {
   const selectedVessels = Array.isArray(currentVessel) 
     ? currentVessel 
     : currentVessel ? [currentVessel] : [];
@@ -59,7 +43,6 @@ const Header = ({
         <div className="flex items-center space-x-4">
           <h1 className="text-xl font-bold">Defects Manager</h1>
           
-          {/* Vessel Multi-select Dropdown */}
           {vessels.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center space-x-2 bg-background border rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 hover:bg-accent/50">
@@ -104,55 +87,24 @@ const Header = ({
             </DropdownMenu>
           )}
 
-          {/* Date Range Picker */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "flex items-center space-x-2 bg-background border rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 hover:bg-accent/50 h-[34px]",
-                  !dateRange.from && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="h-4 w-4 opacity-50" />
-                <span>
-                  {dateRange.from ? (
-                    dateRange.to ? (
-                      <>
-                        {format(dateRange.from, "MMM d, yyyy")} - {format(dateRange.to, "MMM d, yyyy")}
-                      </>
-                    ) : (
-                      format(dateRange.from, "MMM d, yyyy")
-                    )
-                  ) : (
-                    "Date Range"
-                  )}
-                </span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                initialFocus
-                mode="range"
-                defaultMonth={dateRange.from}
-                selected={dateRange}
-                onSelect={onDateRangeChange}
-                numberOfMonths={2}
-              />
-              <div className="p-3 border-t border-border">
-                <Button
-                  variant="outline"
-                  className="w-full text-xs"
-                  onClick={() => onDateRangeChange({ from: '', to: '' })}
-                >
-                  Reset Date Range
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
+          {/* Simple Date Range Filter */}
+          <div className="flex items-center space-x-2">
+            <input
+              type="date"
+              className="h-8 px-2 text-xs bg-background border rounded-md focus:outline-none focus:ring-2"
+              value={dateRange.from || ''}
+              onChange={(e) => onDateRangeChange({ ...dateRange, from: e.target.value })}
+            />
+            <span className="text-xs">to</span>
+            <input
+              type="date"
+              className="h-8 px-2 text-xs bg-background border rounded-md focus:outline-none focus:ring-2"
+              value={dateRange.to || ''}
+              onChange={(e) => onDateRangeChange({ ...dateRange, to: e.target.value })}
+            />
+          </div>
         </div>
 
-        {/* User Menu */}
         {user && (
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center space-x-2 hover:bg-accent rounded-full p-2">
