@@ -14,7 +14,10 @@
     "recharts": "^2.10.3",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
-    "pdf-lib": "^1.17.1"
+    "pdf-lib": "^1.17.1",
+    "@radix-ui/react-popover": "^1.0.7",
+    "@radix-ui/react-checkbox": "^1.0.4"
+    "react-day-picker": "^8.9.1"
   },
   "scripts": {
     "start": "react-scripts start",
