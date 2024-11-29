@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { PlusCircle, FileText } from 'lucide-react';
 import ExportButton from './ui/ExportButton';
 import { exportToCSV } from '../utils/exportToCSV';
+import { PlusCircle, FileText, Trash2 } from 'lucide-react';
 
 const STATUS_COLORS = {
   'OPEN': {
@@ -36,9 +37,16 @@ const CRITICALITY_COLORS = {
   }
 };
 
-const DefectRow = ({ defect, index, onEditDefect }) => {
+const DefectRow = ({ defect, index, onEditDefect, onDeleteDefect }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this defect?')) {
+      onDeleteDefect(defect.id);
+    }
+  };
+  
   const toggleExpand = (e) => {
     e.stopPropagation();
     setIsExpanded(!isExpanded);
@@ -47,6 +55,15 @@ const DefectRow = ({ defect, index, onEditDefect }) => {
   return (
     <>
       <tr className="table-hover-row cursor-pointer border-b border-white/10 hover:bg-white/5">
+        <td className="px-3 py-1.5">
+          <button
+            onClick={handleDelete}
+            className="p-1 hover:bg-red-500/20 text-red-400 rounded-full transition-colors"
+            aria-label="Delete defect"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </td>
         <td className="px-3 py-1.5">
           <button
             onClick={toggleExpand}
@@ -134,7 +151,8 @@ const DefectRow = ({ defect, index, onEditDefect }) => {
 const DefectsTable = ({ 
   data, 
   onAddDefect, 
-  onEditDefect, 
+  onEditDefect,
+  onDeleteDefect,
   loading,
   searchTerm = '',
   statusFilter = '',
@@ -178,16 +196,17 @@ const DefectsTable = ({
               <th className="px-3 py-2 text-left font-semibold text-[#f4f4f4] opacity-90">Action Planned</th>
               <th className="px-3 py-2 text-left font-semibold text-[#f4f4f4] opacity-90 w-24">Reported</th>
               <th className="px-3 py-2 text-left font-semibold text-[#f4f4f4] opacity-90 w-24">Completed</th>
+              <th className="px-3 py-2 text-left font-semibold text-[#f4f4f4] opacity-90 w-16">Actions</th>
             </tr>
           </thead>
           <tbody className="text-[#f4f4f4]">
             {loading ? (
               <tr>
-                <td colSpan="10" className="px-3 py-2 text-center">Loading...</td>
+                <td colSpan="11" className="px-3 py-2 text-center">Loading...</td>
               </tr>
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan="10" className="px-3 py-2 text-center">No defects found</td>
+                <td colSpan="11" className="px-3 py-2 text-center">No defects found</td>
               </tr>
             ) : (
               data.map((defect, index) => (
@@ -196,6 +215,7 @@ const DefectsTable = ({
                   defect={defect}
                   index={index}
                   onEditDefect={onEditDefect}
+                  onDeleteDefect={onDeleteDefect}
                 />
               ))
             )}
