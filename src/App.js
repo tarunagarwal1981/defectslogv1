@@ -40,6 +40,7 @@ function App() {
   const [vesselNames, setVesselNames] = useState({});
   const [loading, setLoading] = useState(true);
   const [isPdfGenerating, setIsPdfGenerating] = useState(false);
+  const [dateRange, setDateRange] = useState({ from: '', to: '' });
   
   const [currentVessel, setCurrentVessel] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -116,6 +117,7 @@ function App() {
 
   const filteredData = React.useMemo(() => {
     return data.filter(defect => {
+      const defectDate = new Date(defect['Date Reported']);
       const matchesVessel = currentVessel.length === 0 || currentVessel.includes(defect.vessel_id);
       const matchesStatus = !statusFilter || defect['Status (Vessel)'] === statusFilter;
       const matchesCriticality = !criticalityFilter || defect.Criticality === criticalityFilter;
@@ -123,10 +125,13 @@ function App() {
         Object.values(defect).some(value => 
           String(value).toLowerCase().includes(searchTerm.toLowerCase())
         );
+      const matchesDateRange = 
+        (!dateRange.from || defectDate >= new Date(dateRange.from)) &&
+        (!dateRange.to || defectDate <= new Date(dateRange.to));
 
-      return matchesVessel && matchesStatus && matchesCriticality && matchesSearch;
+      return matchesVessel && matchesStatus && matchesCriticality && matchesSearch && matchesDateRange;
     });
-  }, [data, currentVessel, statusFilter, criticalityFilter, searchTerm]);
+  }, [data, currentVessel, statusFilter, criticalityFilter, searchTerm, dateRange]);
 
   const handleGeneratePdf = useCallback(async () => {
     setIsPdfGenerating(true);
@@ -312,6 +317,8 @@ function App() {
               currentVessel={currentVessel}
               onVesselChange={setCurrentVessel}
               onLogout={handleLogout}
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
             />
             
             <main className="container mx-auto pt-20">
