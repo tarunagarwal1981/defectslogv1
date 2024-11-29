@@ -34,6 +34,7 @@ const getUserVessels = async (userId) => {
 function App() {
   const { toast } = useToast();
   
+  const [isInitializing, setIsInitializing] = useState(true);
   const [session, setSession] = useState(null);
   const [data, setData] = useState([]);
   const [assignedVessels, setAssignedVessels] = useState([]);
@@ -55,19 +56,16 @@ function App() {
 
     try {
       setLoading(true);
-      console.log('Fetching user data for:', session.user.id);
+      setData([]); // Clear existing data while loading
       
       const userVessels = await getUserVessels(session.user.id);
       console.log('Fetched vessels:', userVessels?.length);
       
       if (!userVessels || userVessels.length === 0) {
         console.warn('No vessels found for user');
-        setData([]);
-        setAssignedVessels([]);
-        setVesselNames({});
         return;
       }
-      
+
       const vesselIds = userVessels.map(v => v.vessel_id);
       const vesselsMap = userVessels.reduce((acc, v) => {
         if (v.vessels) {
@@ -76,6 +74,9 @@ function App() {
         return acc;
       }, {});
 
+      setAssignedVessels(vesselIds);
+      setVesselNames(vesselsMap);
+
       const { data: defects, error: defectsError } = await supabase
         .from('defects register')
         .select('*')
@@ -83,29 +84,18 @@ function App() {
         .in('vessel_id', vesselIds)
         .order('Date Reported', { ascending: false });
 
-      if (defectsError) {
-        console.error('Error fetching defects:', defectsError);
-        throw defectsError;
-      }
+      if (defectsError) throw defectsError;
+      console.log('Fetched defects:', defects?.length);
 
-      console.log('Setting data:', defects?.length, 'defects');
-
-      // Important: Update all states at once
-      setAssignedVessels(vesselIds);
-      setVesselNames(vesselsMap);
-      setData(Array.isArray(defects) ? defects : []);
+      setData(defects || []);
       
     } catch (error) {
       console.error("Error fetching data:", error);
       toast({
         title: "Error",
-        description: error.message,
+        description: "Failed to load data. Please refresh the page.",
         variant: "destructive",
       });
-      // Clear data on error
-      setData([]);
-      setAssignedVessels([]);
-      setVesselNames({});
     } finally {
       setLoading(false);
     }
@@ -116,16 +106,24 @@ function App() {
 
     const initializeAuth = async () => {
       try {
+        setIsInitializing(true);
         const { data: { session: initialSession } } = await supabase.auth.getSession();
-        if (mounted) {
-          console.log('Setting initial session:', initialSession?.user?.id);
+        
+        if (!mounted) return;
+
+        if (initialSession?.user?.id) {
+          console.log('Initial session found:', initialSession.user.id);
           setSession(initialSession);
-          if (initialSession?.user) {
-            await fetchUserData();
-          }
+          await fetchUserData();
+        } else {
+          setSession(null);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
+      } finally {
+        if (mounted) {
+          setIsInitializing(false);
+        }
       }
     };
 
@@ -133,13 +131,14 @@ function App() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       if (!mounted) return;
-      
+
       console.log('Auth state changed:', event, newSession?.user?.id);
-      setSession(newSession);
       
-      if (event === 'SIGNED_IN' && newSession?.user) {
+      if (event === 'SIGNED_IN' && newSession?.user?.id) {
+        setSession(newSession);
         await fetchUserData();
       } else if (event === 'SIGNED_OUT') {
+        setSession(null);
         setData([]);
         setAssignedVessels([]);
         setVesselNames({});
@@ -346,6 +345,14 @@ function App() {
     }
     return `${currentVessel.length} Vessels Selected`;
   };
+
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-white">Initializing...</div>
+      </div>
+    );
+  }
 
   return (
     <ToastProvider>
