@@ -1,4 +1,5 @@
 import React from 'react';
+import { format } from "date-fns";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -7,17 +8,31 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from './ui/dropdown-menu';
-import { User, LogOut, ChevronDown } from 'lucide-react';
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "./ui/popover";
+import { Calendar } from "./ui/calendar";
+import { Button } from "./ui/button";
+import { User, LogOut, ChevronDown, Calendar as CalendarIcon } from 'lucide-react';
+import { cn } from "@/lib/utils";
 
-const Header = ({ user, vessels, currentVessel, onVesselChange, onLogout }) => {
-  // Convert currentVessel to array if it's a string or empty
+const Header = ({ 
+  user, 
+  vessels, 
+  currentVessel, 
+  onVesselChange, 
+  onLogout,
+  dateRange,
+  onDateRangeChange 
+}) => {
   const selectedVessels = Array.isArray(currentVessel) 
     ? currentVessel 
     : currentVessel ? [currentVessel] : [];
 
   const handleVesselToggle = (vesselId) => {
     if (vesselId === '') {
-      // If "All Vessels" is clicked, clear selection
       onVesselChange([]);
       return;
     }
@@ -29,7 +44,6 @@ const Header = ({ user, vessels, currentVessel, onVesselChange, onLogout }) => {
     onVesselChange(updatedSelection);
   };
 
-  // Get display text for vessel selector
   const getVesselDisplayText = () => {
     if (selectedVessels.length === 0) return 'All Vessels';
     if (selectedVessels.length === 1) {
@@ -58,7 +72,6 @@ const Header = ({ user, vessels, currentVessel, onVesselChange, onLogout }) => {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <div className="max-h-[300px] overflow-y-auto">
-                  {/* All Vessels Option */}
                   <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent">
                     <label className="flex flex-1 items-center">
                       <input
@@ -70,7 +83,6 @@ const Header = ({ user, vessels, currentVessel, onVesselChange, onLogout }) => {
                       All Vessels
                     </label>
                   </div>
-                  {/* Individual Vessel Options */}
                   {vessels.map(([id, name]) => (
                     <div 
                       key={id}
@@ -91,6 +103,53 @@ const Header = ({ user, vessels, currentVessel, onVesselChange, onLogout }) => {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
+
+          {/* Date Range Picker */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "flex items-center space-x-2 bg-background border rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 hover:bg-accent/50 h-[34px]",
+                  !dateRange.from && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="h-4 w-4 opacity-50" />
+                <span>
+                  {dateRange.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "MMM d, yyyy")} - {format(dateRange.to, "MMM d, yyyy")}
+                      </>
+                    ) : (
+                      format(dateRange.from, "MMM d, yyyy")
+                    )
+                  ) : (
+                    "Date Range"
+                  )}
+                </span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={dateRange.from}
+                selected={dateRange}
+                onSelect={onDateRangeChange}
+                numberOfMonths={2}
+              />
+              <div className="p-3 border-t border-border">
+                <Button
+                  variant="outline"
+                  className="w-full text-xs"
+                  onClick={() => onDateRangeChange({ from: '', to: '' })}
+                >
+                  Reset Date Range
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* User Menu */}
