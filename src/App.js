@@ -270,6 +270,34 @@ function App() {
     }
   };
 
+  const handleDeleteDefect = async (defectId) => {
+  try {
+    const { error } = await supabase
+      .from('defects register')
+      .delete()
+      .eq('id', defectId);
+
+    if (error) throw error;
+
+    // Update local state by removing the deleted defect
+    setData(prevData => prevData.filter(d => d.id !== defectId));
+
+    toast({
+      title: "Defect Deleted",
+      description: "Successfully deleted the defect record",
+    });
+
+  } catch (error) {
+    console.error("Error deleting defect:", error);
+    toast({
+      title: "Error",
+      description: error.message || "Failed to delete defect",
+      variant: "destructive",
+    });
+  }
+};
+
+  
   // Get vessel name for ChatBot, now handling multiple selections
   const getSelectedVesselsDisplay = () => {
     if (currentVessel.length === 0) return 'All Vessels';
@@ -310,6 +338,7 @@ function App() {
                   setCurrentDefect(defect);
                   setIsDefectDialogOpen(true);
                 }}
+                onDeleteDefect={handleDeleteDefect}
                 loading={loading}
               />
 
