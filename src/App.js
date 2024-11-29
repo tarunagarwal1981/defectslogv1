@@ -50,20 +50,6 @@ function App() {
   const [isDefectDialogOpen, setIsDefectDialogOpen] = useState(false);
   const [currentDefect, setCurrentDefect] = useState(null);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
   const fetchUserData = useCallback(async () => {
     if (!session?.user?.id) return;
 
@@ -106,14 +92,36 @@ function App() {
   }, [session?.user?.id, toast]);
 
   useEffect(() => {
-    if (session?.user) {
-      fetchUserData();
-    } else {
+    // Initial session check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.id);
+      setSession(session);
+      if (session?.user) {
+        fetchUserData();
+      }
+    });
+
+    // Auth state change listener
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log('Auth state changed:', session?.user?.id);
+      setSession(session);
+      if (session?.user) {
+        await fetchUserData();
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!session?.user) {
       setData([]);
       setAssignedVessels([]);
       setVesselNames({});
     }
-  }, [session?.user, fetchUserData]);
+  }, [session?.user]);
 
   const filteredData = React.useMemo(() => {
     return data.filter(defect => {
