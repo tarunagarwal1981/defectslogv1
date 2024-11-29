@@ -50,12 +50,14 @@ function App() {
   const [isDefectDialogOpen, setIsDefectDialogOpen] = useState(false);
   const [currentDefect, setCurrentDefect] = useState(null);
 
-  const fetchUserData = useCallback(async (userId) => {
+  const fetchUserData = useCallback(async () => {
+    if (!session?.user?.id) return;
+
     try {
       setLoading(true);
-      console.log('Fetching user data for:', userId);
+      console.log('Fetching user data for:', session.user.id);
       
-      const userVessels = await getUserVessels(userId);
+      const userVessels = await getUserVessels(session.user.id);
       console.log('Fetched vessels:', userVessels?.length);
       
       const vesselIds = userVessels.map(v => v.vessel_id);
@@ -90,37 +92,31 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
-
-  const handleLogin = async (session) => {
-    setSession(session);
-    if (session?.user?.id) {
-      await fetchUserData(session.user.id);
-    }
-  };
+  }, [session?.user?.id, toast]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user?.id) {
-        handleLogin(session);
-      } else {
-        setSession(null);
-      }
+      setSession(session);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user?.id) {
-        await handleLogin(session);
-      } else if (event === 'SIGNED_OUT') {
-        setSession(null);
-        setData([]);
-        setAssignedVessels([]);
-        setVesselNames({});
-      }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (session?.user) {
+      fetchUserData();
+    } else {
+      setData([]);
+      setAssignedVessels([]);
+      setVesselNames({});
+    }
+  }, [session?.user, fetchUserData]);
 
   const filteredData = React.useMemo(() => {
     return data.filter(defect => {
@@ -295,6 +291,10 @@ function App() {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      setSession(null);
+      setData([]);
+      setAssignedVessels([]);
+      setVesselNames({});
     } catch (error) {
       console.error("Error logging out:", error);
       toast({
@@ -379,7 +379,7 @@ function App() {
             </main>
           </>
         ) : (
-          <Auth onLogin={handleLogin} />
+          <Auth onLogin={setSession} />
         )}
       </div>
     </ToastProvider>
